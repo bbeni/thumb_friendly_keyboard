@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Thumb Friendly Keyboard</string>
+    <string name="settings_subtitle">Settings</string>
+    <string name="hint_to_test_keyboard">Test Keyboard here!</string>
+</resources>
