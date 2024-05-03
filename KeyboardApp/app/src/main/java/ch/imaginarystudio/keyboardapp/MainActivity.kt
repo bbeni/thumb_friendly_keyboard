@@ -1,5 +1,7 @@
 package ch.imaginarystudio.keyboardapp
 
+import android.content.Intent
+import android.provider.Settings
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,19 +17,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -44,12 +42,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import splitties.systemservices.inputMethodManager
+
 import ch.imaginarystudio.keyboardapp.ui.theme.KeyboardAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -119,6 +120,40 @@ fun SwitchSettingCol(description: String, initialChecked: Boolean = false) {
     }
 }
 
+@Composable
+fun EnableIMEButton() {
+    Row (
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(15.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ){
+        val ctx = LocalContext.current
+        Button(modifier = Modifier.fillMaxWidth(), onClick = {
+            ctx.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
+        }) {
+            Text(text = "Enable IME")
+        }
+    }
+}
+
+@Composable
+fun SelectIMEButton() {
+    Row (
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(15.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ){
+        val ctx = LocalContext.current
+        Button(modifier = Modifier.fillMaxWidth(), onClick = {
+            inputMethodManager.showInputMethodPicker()
+        }) {
+            Text(text = "Select IME")
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DropdownSettingCol(description: String ) {
@@ -174,6 +209,8 @@ fun SettingsPanelView() {
         content = {
             SwitchSettingCol(description = "Dark Mode")
             SwitchSettingCol(description = "Default")
+            EnableIMEButton()
+            SelectIMEButton()
             DropdownSettingCol(description = "Language")
         }
     )
@@ -215,7 +252,6 @@ fun TitleView() {
             text = stringResource(id = R.string.app_name),
             fontSize = 30.sp,
             modifier = Modifier.padding(10.dp)
-
         )
     }
 }

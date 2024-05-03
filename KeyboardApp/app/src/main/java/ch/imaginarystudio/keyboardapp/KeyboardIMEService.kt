@@ -1,20 +1,16 @@
 package ch.imaginarystudio.keyboardapp
 
+import android.content.Context
+import android.content.Intent
 import android.inputmethodservice.InputMethodService
 import android.view.View
-import android.view.ViewTreeObserver
-import android.widget.TextView
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.annotation.CallSuper
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.AbstractComposeView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.ServiceLifecycleDispatcher
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.setViewTreeLifecycleOwner
@@ -23,21 +19,24 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import ch.imaginarystudio.keyboardapp.ui.theme.KeyboardAppTheme
 
 
-class KeyboardIMEService : InputMethodService(), LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner
+class KeyboardIMEService : LifecycleInputMethodService(),
+    ViewModelStoreOwner,
+    SavedStateRegistryOwner
 {
 
     override fun onCreateInputView(): View {
-        var view = ComposeView(this)
+        /*var view = ComposeView(this)
         view.setContent {
             KeyboardAppTheme {
                 Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.background) {
                     TestView()
                 }
             }
-        }
+        }*/
+
+        var v = ComposeKeyboardView(this)
 
         window?.window?.decorView?.let {view->
             view.setViewTreeLifecycleOwner(this)
@@ -45,25 +44,13 @@ class KeyboardIMEService : InputMethodService(), LifecycleOwner, ViewModelStoreO
             view.setViewTreeSavedStateRegistryOwner(this)
         }
 
-        var v = TextView(this)
-        v.text = "asdf asdf asdf asdf asdf asdf "
-        v.textSize = 30.0f
         return v
     }
-
-    @Composable
-    fun TestView() {
-        Text(text = "asdf asdf asdf asd asdf ")
-    }
-
-
 
 
     override fun onCreate() {
         super.onCreate()
-        savedStateRegistryController.performAttach()
         savedStateRegistryController.performRestore(null)
-        handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
     }
 
     override fun onDestroy() {
@@ -74,7 +61,7 @@ class KeyboardIMEService : InputMethodService(), LifecycleOwner, ViewModelStoreO
     //Lifecylce Methods
     private var lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
     override val lifecycle: Lifecycle
-        get() = lifecycleRegistry
+        get() = dispatcher.lifecycle
 
     private fun handleLifecycleEvent(event: Lifecycle.Event) =
         lifecycleRegistry.handleLifecycleEvent(event)
@@ -89,5 +76,49 @@ class KeyboardIMEService : InputMethodService(), LifecycleOwner, ViewModelStoreO
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
     override val savedStateRegistry: SavedStateRegistry
         get() = savedStateRegistryController.savedStateRegistry
+
+}
+
+
+class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
+    @Composable
+    override fun Content() {
+        //MockKeyboard()
+        KeyboardView()
+    }
+}
+
+
+// Copy pasta from https://github.com/THEAccess/compose-keyboard-ime
+abstract class LifecycleInputMethodService : InputMethodService(), LifecycleOwner {
+
+    protected val dispatcher = ServiceLifecycleDispatcher(this)
+
+    @CallSuper
+    override fun onCreate() {
+        dispatcher.onServicePreSuperOnCreate()
+        super.onCreate()
+    }
+
+    override fun onBindInput() {
+        super.onBindInput()
+        dispatcher.onServicePreSuperOnBind()
+    }
+
+
+    // this method is added only to annotate it with @CallSuper.
+    // In usual service super.onStartCommand is no-op, but in LifecycleService
+    // it results in mDispatcher.onServicePreSuperOnStart() call, because
+    // super.onStartCommand calls onStart().
+    @CallSuper
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        return super.onStartCommand(intent, flags, startId)
+    }
+
+    @CallSuper
+    override fun onDestroy() {
+        dispatcher.onServicePreSuperOnDestroy()
+        super.onDestroy()
+    }
 
 }
