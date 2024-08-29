@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "ch.imaginarystudio.keyboardapp"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "ch.imaginarystudio.keyboardapp"
@@ -69,4 +69,6 @@ dependencies {
 
     implementation("com.louiscad.splitties:splitties-systemservices:3.0.0")
     implementation("com.louiscad.splitties:splitties-views:3.0.0")
+
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 }

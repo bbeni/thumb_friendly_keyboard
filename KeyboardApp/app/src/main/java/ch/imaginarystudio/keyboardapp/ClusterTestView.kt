@@ -142,7 +142,7 @@ class KeyboardViewTest(context: Context?) : View(context) {
         canvas.drawPath(path, paint)
     }
 
-    fun plotPoints(canvas: Canvas, points: MutableList<Point>, paint: Paint){
+    fun plotPoints(canvas: Canvas, points: MutableList<Vec2>, paint: Paint){
         canvas.apply {
             for (p in points) {
                 drawCircle(p.x.toFloat()*900f, p.y.toFloat()*900f, 5f, paint)

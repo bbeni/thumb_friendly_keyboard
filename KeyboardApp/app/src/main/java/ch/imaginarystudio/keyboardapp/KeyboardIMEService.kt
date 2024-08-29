@@ -6,7 +6,13 @@ import android.inputmethodservice.InputMethodService
 import android.view.View
 import androidx.annotation.CallSuper
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.AbstractComposeView
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -20,6 +26,11 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
+// At the top level of your kotlin file:
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+object DS {
+   val edit_mode = booleanPreferencesKey("edit_mode")
+}
 
 class KeyboardIMEService : LifecycleInputMethodService(),
     ViewModelStoreOwner,
@@ -58,7 +69,7 @@ class KeyboardIMEService : LifecycleInputMethodService(),
         handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     }
 
-    //Lifecylce Methods
+    //Lifecycle Methods
     private var lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
     override val lifecycle: Lifecycle
         get() = dispatcher.lifecycle
@@ -72,19 +83,33 @@ class KeyboardIMEService : LifecycleInputMethodService(),
         get() = store
 
 
-    //SaveStateRegestry Methods
+    //SaveStateRegistry Methods
     private val savedStateRegistryController = SavedStateRegistryController.create(this)
     override val savedStateRegistry: SavedStateRegistry
         get() = savedStateRegistryController.savedStateRegistry
 
 }
 
-
 class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
     @Composable
     override fun Content() {
-        //MockKeyboard()
-        KeyboardView()
+
+        // *insert rage comment here*
+
+        /*val edit_mode by context.dataStore.data.map {
+            it[DS.edit_mode] ?: false
+        }.collectAsState(initial = false)
+        */
+
+        val edit_mode = remember {
+            mutableStateOf(true)
+        }
+
+        if (edit_mode.value) {
+            KeyboardConstructView()
+        } else {
+            MockKeyboard()
+        }
     }
 }
 

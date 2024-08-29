@@ -1,8 +1,8 @@
 package ch.imaginarystudio.keyboardapp
 
 import android.content.Intent
-import android.provider.Settings
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
-
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -32,6 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,9 +49,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ch.imaginarystudio.keyboardapp.ui.theme.KeyboardAppTheme
 import splitties.systemservices.inputMethodManager
 
-import ch.imaginarystudio.keyboardapp.ui.theme.KeyboardAppTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,6 +69,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainView() {
+    val dark_mode = remember { mutableStateOf(false) }
+    val edit_mode = remember { mutableStateOf(true) }
+
     Column(
         modifier = Modifier
             .padding(0.dp)
@@ -80,7 +83,7 @@ fun MainView() {
         TitleView()
         TestInputView()
         SubTitleView()
-        SettingsPanelView()
+        SettingsPanelView(dark_mode, edit_mode)
     }
 }
 
@@ -105,20 +108,19 @@ fun TestInputView() {
 }
 
 @Composable
-fun SwitchSettingCol(description: String, initialChecked: Boolean = false) {
-    var checked by remember {
-        mutableStateOf(initialChecked)
-    }
+fun SwitchSettingCol(description: String, checked: MutableState<Boolean>) {
     Row (
         modifier = Modifier
             .fillMaxSize()
             .padding(15.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ){
-        Switch(checked = checked, onCheckedChange = {checked=!checked})
+        Switch(checked = checked.value, onCheckedChange = {checked.value = !checked.value})
         Text(text = description)
     }
 }
+
+
 
 @Composable
 fun EnableIMEButton() {
@@ -200,17 +202,17 @@ fun DropdownSettingCol(description: String ) {
 }
 
 @Composable
-fun SettingsPanelView() {
+fun SettingsPanelView(dark_mode: MutableState<Boolean>, edit_mode: MutableState<Boolean>  ) {
     val list = (1..10).map { it.toString() }
     Column (
         modifier=Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
         content = {
-            SwitchSettingCol(description = "Dark Mode")
-            SwitchSettingCol(description = "Default")
             EnableIMEButton()
             SelectIMEButton()
+            SwitchSettingCol(description = "Editing Keyboard", edit_mode)
+            SwitchSettingCol(description = "Dark Mode", dark_mode)
             DropdownSettingCol(description = "Language")
         }
     )
