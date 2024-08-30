@@ -2,12 +2,16 @@ package ch.imaginarystudio.keyboardapp
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Paint
 import android.inputmethodservice.InputMethodService
 import android.view.View
 import androidx.annotation.CallSuper
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -28,6 +32,7 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
 // At the top level of your kotlin file:
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+
 object DS {
    val edit_mode = booleanPreferencesKey("edit_mode")
 }
@@ -94,21 +99,24 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
     @Composable
     override fun Content() {
 
-        // *insert rage comment here*
+        // *insert rage comment here* because it is hard to share state between keyboard and main activity
 
-        /*val edit_mode by context.dataStore.data.map {
-            it[DS.edit_mode] ?: false
-        }.collectAsState(initial = false)
-        */
-
-        val edit_mode = remember {
-            mutableStateOf(true)
+        val keyPaint = Paint().apply {
+            textAlign = Paint.Align.CENTER
+            textSize = 64f
+            color = Color(198, 199, 200).toArgb()
+            setShadowLayer(0.8f, 2.0f, 2.0f, Color.DarkGray.toArgb())
         }
 
-        if (edit_mode.value) {
-            KeyboardConstructView()
+        val finishedConstruction = remember { mutableStateOf(false) }
+        val keyInfos = remember { mutableStateListOf<KeyInfo>() }
+        val modifierShift = remember { mutableStateOf(false) }
+
+        if (!finishedConstruction.value) {
+            KeyboardConstructView(keyInfos, finishedConstruction, keyPaint)
         } else {
-            MockKeyboard()
+            KeyboardView(keyInfos, keyPaint, modifierShift)
+            //MockKeyboard()
         }
     }
 }

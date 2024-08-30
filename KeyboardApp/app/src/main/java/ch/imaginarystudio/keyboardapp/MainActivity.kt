@@ -68,9 +68,19 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+fun MyText(text: String) {
+    Text(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(15.dp, 0.dp),
+        text = text
+    )
+}
+
+@Composable
 fun MainView() {
-    val dark_mode = remember { mutableStateOf(false) }
-    val edit_mode = remember { mutableStateOf(true) }
+    val darkMode = remember { mutableStateOf(false) }
+    val editMode = remember { mutableStateOf(true) }
 
     Column(
         modifier = Modifier
@@ -81,11 +91,23 @@ fun MainView() {
         horizontalAlignment = Alignment.Start,
     ) {
         TitleView()
+        MyText(text = "Hello!  To start press 'Enable the Keyboard' then switch 'Thumb Friendly Keyboard' on and come back")
+        EnableIMEButton("Enable the Keyboard")
+        MyText(text = "Now it is time to 'Select the Keyboard'")
+        SelectIMEButton("Select the Keyboard")
+        MyText(text =
+            "Click on the test text field below. " +
+            "An empty space will appear with a red text on top telling you which Key is next. " +
+            "One by one place each key where you like it. " +
+            "When all keys are done, indicated when the red bar disappears, the keyboard is ready to use! " +
+            "Upon phone restart you might have to do this again..."
+        )
         TestInputView()
         SubTitleView()
-        SettingsPanelView(dark_mode, edit_mode)
+        SettingsPanelView(darkMode, editMode)
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -123,7 +145,7 @@ fun SwitchSettingCol(description: String, checked: MutableState<Boolean>) {
 
 
 @Composable
-fun EnableIMEButton() {
+fun EnableIMEButton(text: String = "Enable IME") {
     Row (
         modifier = Modifier
             .fillMaxSize()
@@ -134,13 +156,13 @@ fun EnableIMEButton() {
         Button(modifier = Modifier.fillMaxWidth(), onClick = {
             ctx.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
         }) {
-            Text(text = "Enable IME")
+            Text(text = text)
         }
     }
 }
 
 @Composable
-fun SelectIMEButton() {
+fun SelectIMEButton(text: String = "Select IME") {
     Row (
         modifier = Modifier
             .fillMaxSize()
@@ -151,7 +173,7 @@ fun SelectIMEButton() {
         Button(modifier = Modifier.fillMaxWidth(), onClick = {
             inputMethodManager.showInputMethodPicker()
         }) {
-            Text(text = "Select IME")
+            Text(text = text)
         }
     }
 }

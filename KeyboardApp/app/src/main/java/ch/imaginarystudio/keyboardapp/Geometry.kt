@@ -77,7 +77,7 @@ class Segment(val a: Vec2, val b: Vec2) {
 
 data class Polygon(var corners : MutableList<Vec2> = mutableListOf()) {
     fun shrunkCorners(percentage: Float, shrinkCenter: Vec2) : List<Vec2> {
-        return corners.map { p -> p - (shrinkCenter - p) * (percentage.toDouble()) }
+        return corners.map { p -> p - (p - shrinkCenter) * (percentage.toDouble()) }
     }
     fun addCorner(c : Vec2) {corners.add(c)}
     fun scale(fl: Double) {
