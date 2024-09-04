@@ -76,14 +76,34 @@ class Segment(val a: Vec2, val b: Vec2) {
 }
 
 data class Polygon(var corners : MutableList<Vec2> = mutableListOf()) {
-    fun shrunkCorners(percentage: Float, shrinkCenter: Vec2) : List<Vec2> {
-        return corners.map { p -> p - (p - shrinkCenter) * (percentage.toDouble()) }
-    }
+
     fun addCorner(c : Vec2) {corners.add(c)}
     fun scale(fl: Double) {
         corners = corners.map { c -> c * fl }.toMutableList()
     }
+    fun shrunkCorners(percentage: Float, shrinkCenter: Vec2) : List<Vec2> {
+        return corners.map { p -> p - (p - shrinkCenter) * (percentage.toDouble()) }
+    }
+    fun shrunkCornersPerpendicularToBorder(pixels: Float) : List<Vec2> {
+        return corners.mapIndexed { i, corner ->
+            val iPrev = (i-1+corners.count())%corners.count()
+            val iNext = (i+1)%corners.count()
 
+            val xToPrev = (corners[iPrev] - corner).normalized()
+            val xToNext = (corners[iNext] - corner).normalized()
+
+            val perpPrev = Vec2(-xToPrev.y, xToPrev.x)
+            val perpNext = Vec2(xToNext.y, -xToNext.x)
+
+            // calculate the factors to by which to move the corner inwards
+            // the dot product is used to get the projection onto the perpendicular
+            // TODO: make sure the dot products are never 0..
+            val f1 = pixels / (perpPrev * xToNext)
+            val f2 = pixels / (perpNext * xToPrev)
+
+            corner + xToNext * f1 + xToPrev * f2
+        }
+    }
     fun contains(point: Vec2): Boolean {
 
         // pathological case of empty polygon

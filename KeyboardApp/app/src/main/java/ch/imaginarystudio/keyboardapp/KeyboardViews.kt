@@ -215,7 +215,7 @@ fun DrawScope.drawPolygon(polygon: Polygon, strokeWidth: Float, color: Color = C
     )
 }
 
-fun DrawScope.drawKeyField(key: KeyInfo, shrinkFactor: Float, bgColor: Color=Color.DarkGray, borderColor: Color = Color.Black) {
+fun DrawScope.drawKeyField(key: KeyInfo, shrinkPixels: Float, bgColor: Color=Color.DarkGray, borderColor: Color = Color.Black) {
     /*
     for (i in 0 until polygon.corners.count()) {
         val p1 = polygon.corners[i]
@@ -229,7 +229,8 @@ fun DrawScope.drawKeyField(key: KeyInfo, shrinkFactor: Float, bgColor: Color=Col
     } */
 
     var corners = offsetsForDrawing(
-        key.boundary.shrunkCorners(shrinkFactor, key.position)
+        //key.boundary.shrunkCorners(0.02f, key.position)
+        key.boundary.shrunkCornersPerpendicularToBorder(shrinkPixels)
     )
 
     // draw background
@@ -252,7 +253,7 @@ fun DrawScope.drawKeyField(key: KeyInfo, shrinkFactor: Float, bgColor: Color=Col
 
 }
 
-fun DrawScope.DrawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardState) {
+fun DrawScope.DrawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardState, shrinkPixels: Float) {
 
     // draw background
     drawRoundRect(
@@ -270,7 +271,7 @@ fun DrawScope.DrawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardSt
     // draw keys
     for ((i, keyInfo) in keyInfos.withIndex()) {
         val p = Offset(keyInfo.position.x.toFloat(), keyInfo.position.y.toFloat());
-        drawKeyField(keyInfo, 0.01f, bgColor = Color.Gray)
+        drawKeyField(keyInfo, shrinkPixels, bgColor = Color.Gray)
         var key = keyInfo.key.code
         if (keyboardState.modifierShift.value) {
             key = key.uppercase()
@@ -318,7 +319,7 @@ fun KeyboardView( keyboardData: KeyboardData, keyboardState: KeyboardState) {
     Canvas(
         modifier = Modifier
             .height(300.dp)
-            .padding(2.dp)
+            .padding(0.dp)
             .fillMaxWidth()
             .pointerInput(Unit) {
                 detectTapGestures { offset ->
@@ -371,7 +372,7 @@ fun KeyboardView( keyboardData: KeyboardData, keyboardState: KeyboardState) {
                 }
             }
     ) {
-        DrawKeyboard(keyboardData, keyboardState)
+        DrawKeyboard(keyboardData, keyboardState, 1.dp.toPx())
     }
 }
 
@@ -407,7 +408,6 @@ fun KeyboardConstructView(keyboradData: KeyboardData, keyboardState: KeyboardSta
 
     val curSelection = remember { mutableStateOf(0) }
     val pageSelection = remember { mutableStateOf(0) }
-
 
     Column(
         modifier = Modifier
@@ -468,7 +468,7 @@ fun KeyboardConstructView(keyboradData: KeyboardData, keyboardState: KeyboardSta
                     }
                 }
         ) {
-            DrawKeyboard(keyboradData, keyboardState)
+            DrawKeyboard(keyboradData, keyboardState, 1.dp.toPx())
         }
     }
 }
