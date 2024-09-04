@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.AbstractComposeView
+import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -105,6 +106,17 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
             modifierShift = remember { mutableStateOf(false) },
             modifierNumeric = remember { mutableStateOf(false) },
             showSettings = remember { mutableStateOf(false) },
+
+        )
+
+        val keyboardData = KeyboardData(
+            finishedConstruction = remember { mutableStateOf(false) },
+            alphaPage = remember { mutableStateListOf<KeyInfo>() },
+            numericPage = remember { mutableStateListOf<KeyInfo>() }
+        )
+
+        val keyboardTheme = KeyboardTheme(
+            shrinkKeyDp = 1.dp,
             keyPaint = Paint().apply {
                 textAlign = Paint.Align.CENTER
                 textSize = 64f
@@ -113,16 +125,11 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
             }
         )
 
-        val keyboardData = KeyboardData(
-            finishedConstruction = remember { mutableStateOf(false) },
-            alphaPage = remember { mutableStateListOf<KeyInfo>() },
-            numericPage = remember { mutableStateListOf<KeyInfo>() },
-            )
 
         if (!keyboardData.finishedConstruction.value) {
-            KeyboardConstructView(keyboardData, keyboardState)
+            KeyboardConstructView(keyboardData, keyboardState, keyboardTheme)
         } else {
-            KeyboardView(keyboardData, keyboardState)
+            KeyboardView(keyboardData, keyboardState, keyboardTheme)
             //MockKeyboard()
         }
     }

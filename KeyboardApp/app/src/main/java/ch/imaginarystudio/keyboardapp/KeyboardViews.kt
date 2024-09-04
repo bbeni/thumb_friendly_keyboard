@@ -3,6 +3,7 @@ package ch.imaginarystudio.keyboardapp
 import android.graphics.Paint
 import android.text.TextUtils
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputConnection
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -253,7 +254,7 @@ fun DrawScope.drawKeyField(key: KeyInfo, shrinkPixels: Float, bgColor: Color=Col
 
 }
 
-fun DrawScope.DrawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardState, shrinkPixels: Float) {
+fun DrawScope.DrawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardState, theme: KeyboardTheme) {
 
     // draw background
     drawRoundRect(
@@ -261,7 +262,6 @@ fun DrawScope.DrawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardSt
         cornerRadius = CornerRadius(4f, 4f),
         style = Fill
     )
-
 
     var keyInfos = keyboardData.alphaPage
     if (keyboardState.modifierNumeric.value) {
@@ -271,13 +271,13 @@ fun DrawScope.DrawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardSt
     // draw keys
     for ((i, keyInfo) in keyInfos.withIndex()) {
         val p = Offset(keyInfo.position.x.toFloat(), keyInfo.position.y.toFloat());
-        drawKeyField(keyInfo, shrinkPixels, bgColor = Color.Gray)
+        drawKeyField(keyInfo, theme.shrinkKeyDp.toPx(), bgColor = Color.Gray)
         var key = keyInfo.key.code
         if (keyboardState.modifierShift.value) {
             key = key.uppercase()
         }
         drawContext.canvas.nativeCanvas.drawText(
-            key, p.x,p.y + keyboardState.keyPaint.textSize/2, keyboardState.keyPaint
+            key, p.x,p.y + theme.keyPaint.textSize/2, theme.keyPaint
         )
     }
 }
@@ -311,100 +311,79 @@ fun closestKey(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2): Key {
     return keyInfos[closestIndex].key
 }
 
+fun handleKey(keyboardState: KeyboardState, key: Key, ic: InputConnection) {
+    if (!key.isControlChar) {
+        var str = key.code
+
+        if (keyboardState.modifierShift.value) {
+            str = str.uppercase()
+            keyboardState.modifierShift.value = false
+        }
+
+        ic.commitText(str, str.length)
+    } else {
+        when (key.code) {
+            "↩" -> {
+                // TODO: handle closing and reopening of window
+                ic.performEditorAction(EditorInfo.IME_ACTION_GO)
+                //ic.commitText("\n", 1)
+                ic.performEditorAction(EditorInfo.IME_ACTION_DONE)
+            }
+
+            "⇐" -> {
+                if (TextUtils.isEmpty(ic.getSelectedText(0)))
+                    ic.deleteSurroundingText(1, 0)
+                else
+                    ic.commitText("", 0)
+            }
+
+            "⇧" -> keyboardState.modifierShift.value =
+                !keyboardState.modifierShift.value
+
+            "⁝" -> {
+                // TODO: settings
+                keyboardState.showSettings.value = true
+            }
+
+            "?123" -> {
+                keyboardState.modifierNumeric.value =
+                    !keyboardState.modifierNumeric.value
+            }
+        }
+    }
+}
+
 @Composable
-fun KeyboardView( keyboardData: KeyboardData, keyboardState: KeyboardState) {
+fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: KeyboardTheme) {
 
     val ctx = LocalContext.current
 
     Canvas(
         modifier = Modifier
-            .height(300.dp)
+            .height(340.dp)
             .padding(0.dp)
             .fillMaxWidth()
             .pointerInput(Unit) {
                 detectTapGestures { offset ->
+                    // select page and find pressed key
                     var page = keyboardData.alphaPage
-                    if (keyboardState.modifierNumeric.value) {
+                    if (state.modifierNumeric.value) {
                         page = keyboardData.numericPage
                     }
                     val key = closestKey(page, Vec2(offset.x, offset.y))
                     val ic = (ctx as KeyboardIMEService).currentInputConnection
-                    if (!key.isControlChar) {
-                        var str = key.code
 
-                        if (keyboardState.modifierShift.value) {
-                            str = str.uppercase()
-                            keyboardState.modifierShift.value = false
-                        }
-
-                        ic.commitText(str, str.length)
-                    } else {
-                        when (key.code) {
-                            "↩" -> {
-                                // TODO: handle closing and reopening of window
-                                ic.performEditorAction(EditorInfo.IME_ACTION_GO)
-                                //ic.commitText("\n", 1)
-                                ic.performEditorAction(EditorInfo.IME_ACTION_DONE)
-                            }
-
-                            "⇐" -> {
-                                if (TextUtils.isEmpty(ic.getSelectedText(0)))
-                                    ic.deleteSurroundingText(1, 0)
-                                else
-                                    ic.commitText("", 0)
-                            }
-
-                            "⇧" -> keyboardState.modifierShift.value =
-                                !keyboardState.modifierShift.value
-
-                            "⁝" -> {
-                                // TODO: settings
-                                keyboardState.showSettings.value = true
-                            }
-
-                            "?123" -> {
-                                // TODO: numbers and sign
-                                keyboardState.modifierNumeric.value =
-                                    !keyboardState.modifierNumeric.value
-                            }
-                        }
-                    }
+                    handleKey(state, key, ic)
                 }
             }
     ) {
-        DrawKeyboard(keyboardData, keyboardState, 1.dp.toPx())
+        DrawKeyboard(keyboardData, state, theme)
     }
 }
 
-class Key(var code: String, var isControlChar: Boolean = false)
-
 @OptIn(ExperimentalTextApi::class)
 @Composable
-fun KeyboardConstructView(keyboradData: KeyboardData, keyboardState: KeyboardState) {
-
-    val keysPageAlpha = mutableListOf<Key>(
-        Key("q"), Key("w"), Key("e"), Key("r"), Key("t"), Key("y"), Key("u"), Key("i"), Key("o"), Key("p"),
-        Key("a"), Key("s"), Key("d"), Key("f"), Key("g"), Key("h"), Key("j"), Key("k"), Key("l"),
-        Key("z"), Key("x"), Key("c"), Key("v"), Key("b"), Key("n"), Key("m"),
-        Key("."), Key("?"), Key(" "),
-        Key("↩", true),
-        Key("⇐", true),
-        Key("⇧", true),
-        Key("⁝", true),
-        Key("?123", true),
-    )
-
-    val keysPageNumeric = mutableListOf<Key>(
-        Key("1"), Key("2"), Key("3"), Key("4"), Key("5"), Key("6"), Key("7"), Key("8"), Key("9"), Key("0"),
-        Key("."), Key(":"), Key(","), Key(";"), Key("-"), Key("["), Key("]"), Key("("), Key(")"),
-        Key("_"), Key("%"), Key("&"), Key("*"), Key("/"), Key("\\"), Key("+"),
-        Key("<"), Key(">"), Key("^"),
-        Key("↩", true),
-        Key("⇐", true),
-        Key("⇧", true),
-        Key("⁝", true),
-        Key("?123", true),
-    )
+fun KeyboardConstructView(keyboradData: KeyboardData, keyboardState: KeyboardState, theme: KeyboardTheme) {
 
     val curSelection = remember { mutableStateOf(0) }
     val pageSelection = remember { mutableStateOf(0) }
@@ -427,15 +406,15 @@ fun KeyboardConstructView(keyboradData: KeyboardData, keyboardState: KeyboardSta
         ) {
 
             if (pageSelection.value == 0) {
-                Text(text = "Constructing the Keyboard page 1. Next Key drop is \"" + keysPageAlpha[curSelection.value].code + "\"")
+                Text(text = "Constructing the page 1/2. Next Key drop: \"" + keysPageAlpha[curSelection.value].code + "\" (${curSelection.value + 1}/${keysPageAlpha.count()})")
             } else {
-                Text(text = "Constructing the Keyboard page 2. Next Key drop is \"" + keysPageNumeric[curSelection.value].code + "\"")
+                Text(text = "Constructing the page 2/2. Next Key drop: \"" + keysPageNumeric[curSelection.value].code + "\" (${curSelection.value + 1}/${keysPageNumeric.count()})")
             }
 
         }
         Canvas(
             modifier = Modifier
-                .height(300.dp)
+                .height(340.dp)
                 .padding(0.dp)
                 .fillMaxWidth()
                 .pointerInput(Unit) {
@@ -468,7 +447,7 @@ fun KeyboardConstructView(keyboradData: KeyboardData, keyboardState: KeyboardSta
                     }
                 }
         ) {
-            DrawKeyboard(keyboradData, keyboardState, 1.dp.toPx())
+            DrawKeyboard(keyboradData, keyboardState, theme)
         }
     }
 }
