@@ -101,21 +101,23 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
 
         // *insert rage comment here* because it is hard to share state between keyboard and main activity
 
-        val keyPaint = Paint().apply {
-            textAlign = Paint.Align.CENTER
-            textSize = 64f
-            color = Color(198, 199, 200).toArgb()
-            setShadowLayer(0.8f, 2.0f, 2.0f, Color.DarkGray.toArgb())
-        }
 
-        val finishedConstruction = remember { mutableStateOf(false) }
-        val keyInfos = remember { mutableStateListOf<KeyInfo>() }
-        val modifierShift = remember { mutableStateOf(false) }
+        val keyboardData = KeyboardDataStructure(
+            finishedConstruction = remember { mutableStateOf(false) },
+            keyInfos = remember { mutableStateListOf<KeyInfo>() },
+            modifierShift = remember { mutableStateOf(false) },
+            keyPaint = Paint().apply {
+                textAlign = Paint.Align.CENTER
+                textSize = 64f
+                color = Color(198, 199, 200).toArgb()
+                setShadowLayer(0.8f, 2.0f, 2.0f, Color.DarkGray.toArgb())
+            }
+        )
 
-        if (!finishedConstruction.value) {
-            KeyboardConstructView(keyInfos, finishedConstruction, keyPaint)
+        if (!keyboardData.finishedConstruction.value) {
+            KeyboardConstructView(keyboardData.keyInfos, keyboardData.finishedConstruction, keyboardData.keyPaint)
         } else {
-            KeyboardView(keyInfos, keyPaint, modifierShift)
+            KeyboardView(keyboardData.keyInfos, keyboardData.keyPaint, keyboardData.modifierShift)
             //MockKeyboard()
         }
     }

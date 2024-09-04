@@ -148,10 +148,6 @@ fun recalculateBoundaries(keyInfos: SnapshotStateList<KeyInfo>, size: IntSize) {
         return
     }
 
-    for (k in keyInfos) {
-        println(k);
-    }
-
     // take the rectangle for every key and cut it by perpendicular bisectors
     for (keyInfo in keyInfos) {
         keyInfo.boundary = canvasBoundary.copy()

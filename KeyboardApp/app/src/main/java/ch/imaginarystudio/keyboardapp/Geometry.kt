@@ -100,10 +100,6 @@ data class Polygon(var corners : MutableList<Vec2> = mutableListOf()) {
             }
         }
 
-        println(corners)
-        println(point)
-        println(lineIntersectionCount)
-
         // odd count means we are inside
         return (lineIntersectionCount % 2) == 1
     }

@@ -52,6 +52,12 @@ import androidx.compose.ui.unit.sp
 import ch.imaginarystudio.keyboardapp.ui.theme.KeyboardAppTheme
 import splitties.systemservices.inputMethodManager
 
+/*
+    Goals:
+        - Multiple Pages of Keyboard: Letters, Numbers, ...
+        - Save Keyboards persistently
+        - Have a good default Keyboard
+ */
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
