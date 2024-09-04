@@ -10,6 +10,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -360,7 +361,7 @@ fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: Keyboa
 
     Canvas(
         modifier = Modifier
-            .height(340.dp)
+            .aspectRatio(theme.aspectRatio)
             .padding(0.dp)
             .fillMaxWidth()
             .pointerInput(Unit) {
@@ -414,7 +415,7 @@ fun KeyboardConstructView(keyboradData: KeyboardData, keyboardState: KeyboardSta
         }
         Canvas(
             modifier = Modifier
-                .height(340.dp)
+                .aspectRatio(theme.aspectRatio)
                 .padding(0.dp)
                 .fillMaxWidth()
                 .pointerInput(Unit) {

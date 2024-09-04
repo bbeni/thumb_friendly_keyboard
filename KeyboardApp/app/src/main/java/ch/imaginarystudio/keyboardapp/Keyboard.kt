@@ -18,7 +18,7 @@ class KeyboardState(
 )
 
 class KeyboardTheme(
-    val aspectRatio: Float = 15f/17,
+    val aspectRatio: Float = 17f/15,
     val keyPaint: Paint,
     val shrinkKeyDp: Dp,
 )
