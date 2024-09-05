@@ -12,7 +12,7 @@ object Settings{
 
 
 // Point is actually a 2Vec
-data class Vec2(val x: Double, val y: Double) {
+data class Vec2(var x: Double, var y: Double) {
     constructor(x: Float, y: Float): this(x.toDouble(), y.toDouble()) {}
     operator fun times(t: Double): Vec2 = Vec2(t * x, t * y)
     operator fun plus(other: Vec2): Vec2 = Vec2(x + other.x, y + other.y)

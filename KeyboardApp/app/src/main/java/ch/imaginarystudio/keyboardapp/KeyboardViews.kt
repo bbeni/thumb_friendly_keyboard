@@ -160,7 +160,7 @@ fun recalculateBoundaries(keyInfos: SnapshotStateList<KeyInfo>, size: IntSize) {
     }
 }
 fun addKey(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2, key: Key) {
-    val keyInfo = KeyInfo(position, boundary = Polygon(), key)
+    val keyInfo = KeyInfo(position, Polygon(), key)
     keyInfos.add(keyInfo)
 }
 
@@ -270,14 +270,23 @@ fun DrawScope.DrawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardSt
 
     // draw keys
     for ((i, keyInfo) in keyInfos.withIndex()) {
-        val p = Offset(keyInfo.position.x.toFloat(), keyInfo.position.y.toFloat());
+        //val p = Offset(keyInfo.position.x.toFloat(), keyInfo.position.y.toFloat());
+
+        var offset = Offset(0.0f, 0.0f)
+        keyInfo.boundary.corners.forEach {
+            offset += Offset(it.x.toFloat(), it.y.toFloat())
+        }
+        offset /= keyInfo.boundary.corners.count().toFloat() + 0.00000001f
+
+        //val p = Offset(keyInfo.position.x.toFloat(), keyInfo.position.y.toFloat());
+
         drawKeyField(keyInfo, theme.shrinkKeyDp.toPx(), bgColor = Color.Gray)
         var key = keyInfo.key.code
         if (keyboardState.modifierShift.value) {
             key = key.uppercase()
         }
         drawContext.canvas.nativeCanvas.drawText(
-            key, p.x,p.y + theme.keyPaint.textSize/2, theme.keyPaint
+            key, offset.x, offset.y + theme.keyPaint.textSize/2, theme.keyPaint
         )
     }
 }
