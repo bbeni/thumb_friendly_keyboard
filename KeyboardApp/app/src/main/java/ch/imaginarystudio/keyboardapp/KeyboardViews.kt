@@ -76,21 +76,19 @@ data class KeyInfo(
         // if we have a cut point the two cut points get added to both, so we have two adjacent new polygons
         // if we don't hit, we will always add to the first one (pointsLeft)
         // TODO: do not use dynamic list as this might be very inefficient
-        var pointsLeft = mutableListOf<Vec2>()
-        var pointsRight = mutableListOf<Vec2>()
+        val pointsLeft = mutableListOf<Vec2>()
+        val pointsRight = mutableListOf<Vec2>()
 
         var phase = 0 // phase 0 is before first segment hit, 1 after, 2 after second hit
 
         val count = boundary.corners.count()
         for (i in 0 until count) {
-            var i1 = i
-            var i2 = (i+1) % count
-            val p1 = boundary.corners[i1]
-            val p2 = boundary.corners[i2]
-            var segment = Segment(p1, p2)
+            val p1 = boundary.corners[i]
+            val p2 = boundary.corners[(i+1) % count]
+            val segment = Segment(p1, p2)
 
-            var intersects = centerLine.intersectsSegment(segment)
-            var point = centerLine.intersectionPoint(segment.toLine())
+            val intersects = centerLine.intersectsSegment(segment)
+            val point = centerLine.intersectionPoint(segment.toLine())
 
             if (phase == 0) {
                 pointsLeft.add(p1)
@@ -103,6 +101,7 @@ data class KeyInfo(
             if (phase == 2) {
                 pointsLeft.add(p1)
             }
+
             if (intersects && point != null) {
                 phase++
                 pointsLeft.add(point)
@@ -114,8 +113,8 @@ data class KeyInfo(
         if (phase == 0) return
         assert(phase == 2)
 
-        var poly_a = Polygon(pointsRight)
-        var poly_b = Polygon(pointsLeft)
+        val poly_a = Polygon(pointsRight)
+        val poly_b = Polygon(pointsLeft)
 
         if (poly_a.contains(position)) {
             boundary = poly_a
@@ -161,7 +160,7 @@ fun recalculateBoundaries(keyInfos: SnapshotStateList<KeyInfo>, size: IntSize) {
     }
 }
 fun addKey(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2, key: Key) {
-    var keyInfo = KeyInfo(position, boundary = Polygon(), key)
+    val keyInfo = KeyInfo(position, boundary = Polygon(), key)
     keyInfos.add(keyInfo)
 }
 
@@ -184,7 +183,7 @@ fun DrawScope.drawHexagon(pos: Offset, scale: Float) {
 
 // TODO: this is not so efficient..
 fun offsetsForDrawing(corners: List<Vec2>) : List<Offset> {
-    var offsets = corners
+    val offsets = corners
         .map { c -> Offset(c.x.toFloat(), c.y.toFloat()) }
         .toMutableList()
 
@@ -230,13 +229,13 @@ fun DrawScope.drawKeyField(key: KeyInfo, shrinkPixels: Float, bgColor: Color=Col
         )
     } */
 
-    var corners = offsetsForDrawing(
+    val corners = offsetsForDrawing(
         //key.boundary.shrunkCorners(0.02f, key.position)
         key.boundary.shrunkCornersPerpendicularToBorder(shrinkPixels)
     )
 
     // draw background
-    var path = Path()
+    val path = Path()
     path.moveTo(corners[0].x, corners[0].y)
     path.fillType = PathFillType.EvenOdd
     for (c in corners) {
@@ -384,7 +383,7 @@ fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: Keyboa
 
 @OptIn(ExperimentalTextApi::class)
 @Composable
-fun KeyboardConstructView(keyboradData: KeyboardData, keyboardState: KeyboardState, theme: KeyboardTheme) {
+fun KeyboardConstructView(keyboardData: KeyboardData, keyboardState: KeyboardState, theme: KeyboardTheme) {
 
     val curSelection = remember { mutableStateOf(0) }
     val pageSelection = remember { mutableStateOf(0) }
@@ -421,11 +420,11 @@ fun KeyboardConstructView(keyboradData: KeyboardData, keyboardState: KeyboardSta
                 .pointerInput(Unit) {
                     detectTapGestures { offset ->
                         var toSelect = keysPageAlpha
-                        var pageSelected = keyboradData.alphaPage
+                        var pageSelected = keyboardData.alphaPage
 
                         if (pageSelection.value == 1) {
                             toSelect = keysPageNumeric
-                            pageSelected = keyboradData.numericPage
+                            pageSelected = keyboardData.numericPage
                         }
 
                         val pos = Vec2(offset.x, offset.y)
@@ -442,13 +441,13 @@ fun KeyboardConstructView(keyboradData: KeyboardData, keyboardState: KeyboardSta
                         }
 
                         if (pageSelection.value > 1) {
-                            keyboradData.finishedConstruction.value = true;
+                            keyboardData.finishedConstruction.value = true;
                         }
 
                     }
                 }
         ) {
-            DrawKeyboard(keyboradData, keyboardState, theme)
+            DrawKeyboard(keyboardData, keyboardState, theme)
         }
     }
 }

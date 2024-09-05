@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.AbstractComposeView
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -96,26 +97,15 @@ class KeyboardIMEService : LifecycleInputMethodService(),
 
 }
 
+
+
 class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
     @Composable
     override fun Content() {
 
         // *insert rage comment here* because it is hard to share state between keyboard and main activity
 
-        val keyboardState = KeyboardState (
-            modifierShift = remember { mutableStateOf(false) },
-            modifierNumeric = remember { mutableStateOf(false) },
-            showSettings = remember { mutableStateOf(false) },
-
-        )
-
-        val keyboardData = KeyboardData(
-            finishedConstruction = remember { mutableStateOf(false) },
-            alphaPage = remember { mutableStateListOf<KeyInfo>() },
-            numericPage = remember { mutableStateListOf<KeyInfo>() }
-        )
-
-        val keyboardTheme = KeyboardTheme(
+        val keyboardTheme = KeyboardTheme (
             shrinkKeyDp = 1.dp,
             keyPaint = Paint().apply {
                 textAlign = Paint.Align.CENTER
@@ -123,6 +113,34 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
                 color = Color(198, 199, 200).toArgb()
                 setShadowLayer(0.8f, 2.0f, 2.0f, Color.DarkGray.toArgb())
             }
+        )
+
+
+        val fillDefaultKeyInfos = { keys: List<Key> ->
+            val l = mutableStateListOf<KeyInfo>()
+            val positions = defaultPositions(1f, keyboardTheme.aspectRatio)
+            keys.forEachIndexed { i, k ->
+                addKey(l, positions[i], k, IntSize(1, 1))
+            }
+            l
+        }
+
+        val keyboardState = KeyboardState (
+            modifierShift = remember { mutableStateOf(false) },
+            modifierNumeric = remember { mutableStateOf(false) },
+            showSettings = remember { mutableStateOf(false) }
+        )
+
+        val keyboardData = KeyboardData (
+            finishedConstruction = remember { mutableStateOf(false) },
+            alphaPage = remember { mutableStateListOf<KeyInfo>() },
+            numericPage = remember { mutableStateListOf<KeyInfo>() }
+        )
+
+        val keyboardData2 = KeyboardData (
+            finishedConstruction = remember { mutableStateOf(true) },
+            alphaPage = remember { fillDefaultKeyInfos(keysPageAlpha) },
+            numericPage = remember { fillDefaultKeyInfos(keysPageAlpha) }
         )
 
 
