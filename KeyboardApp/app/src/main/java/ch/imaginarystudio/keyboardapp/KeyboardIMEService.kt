@@ -13,7 +13,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.AbstractComposeView
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -115,12 +114,17 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
             }
         )
 
-
         val fillDefaultKeyInfos = { keys: List<Key> ->
             val l = mutableStateListOf<KeyInfo>()
             val positions = defaultPositions(1f, keyboardTheme.aspectRatio)
             keys.forEachIndexed { i, k ->
-                addKey(l, positions[i], k, IntSize(1, 1))
+                addKey(l, positions[i], k)
+
+                // This Crashes ... The size is not known here so we need to do some refactoring..
+                //  we can then only use the size later and make the keyboard positions independent of it
+                //  I hope this will not get too annoying
+                //recalculateBoundaries(l, IntSize(2000, 2000))
+
             }
             l
         }
