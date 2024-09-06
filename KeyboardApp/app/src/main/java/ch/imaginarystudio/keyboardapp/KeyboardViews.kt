@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.ExperimentalTextApi
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -121,10 +120,10 @@ data class KeyInfo(
 
 
 
-fun recalculateBoundaries(keyInfos: SnapshotStateList<KeyInfo>, size: IntSize) {
+fun recalculateBoundaries(keyInfos: SnapshotStateList<KeyInfo>, aspect: Float) {
     if (keyInfos.isEmpty()) return
 
-    val height = size.height.toFloat() / size.width;
+    val height = 1 / aspect;
 
     val canvasBoundary = Polygon(mutableListOf<Vec2>(
         Vec2(0f, 0f),
@@ -302,7 +301,7 @@ fun KeyboardConstructView(keyboardData: KeyboardData, keyboardState: KeyboardSta
                         val key = toSelect[curSelection.value]
 
                         addKey(pageSelected, tapPos, key)
-                        recalculateBoundaries(pageSelected, size)
+                        recalculateBoundaries(pageSelected, theme.aspectRatio)
                         curSelection.value += 1
 
                         if (curSelection.value >= toSelect.count()) {

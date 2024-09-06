@@ -116,16 +116,11 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
 
         val fillDefaultKeyInfos = { keys: List<Key> ->
             val l = mutableStateListOf<KeyInfo>()
-            val positions = thumbCirclesPositions(keyboardTheme.aspectRatio)
+            val positions = regularGrid1(keyboardTheme.aspectRatio)
             keys.forEachIndexed { i, k ->
                 addKey(l, positions[i], k)
-
-                // This Crashes ... The size is not known here so we need to do some refactoring..
-                //  we can then only use the size later and make the keyboard positions independent of it
-                //  I hope this will not get too annoying
-                //recalculateBoundaries(l, IntSize(2000, 2000))
-
             }
+            recalculateBoundaries(l, keyboardTheme.aspectRatio)
             l
         }
 
@@ -135,18 +130,17 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
             showSettings = remember { mutableStateOf(false) }
         )
 
-        val keyboardData = KeyboardData (
+        val keyboardData1 = KeyboardData (
             finishedConstruction = remember { mutableStateOf(false) },
             alphaPage = remember { mutableStateListOf<KeyInfo>() },
             numericPage = remember { mutableStateListOf<KeyInfo>() }
         )
 
-        val keyboardData2 = KeyboardData (
+        val keyboardData = KeyboardData (
             finishedConstruction = remember { mutableStateOf(true) },
             alphaPage = remember { fillDefaultKeyInfos(keysPageAlpha) },
-            numericPage = remember { fillDefaultKeyInfos(keysPageAlpha) }
+            numericPage = remember { fillDefaultKeyInfos(keysPageNumeric) }
         )
-
 
         if (!keyboardData.finishedConstruction.value) {
             KeyboardConstructView(keyboardData, keyboardState, keyboardTheme)

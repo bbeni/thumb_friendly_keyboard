@@ -6,7 +6,38 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 
+fun regularGrid1(aspectRatio: Float): List<Vec2> {
+    val positions = mutableListOf<Vec2>()
+
+    val getPos = { i: Int, n: Int, y: Float, leftOffset: Float, rightOffset: Float ->
+        val dist = 1f - leftOffset - rightOffset
+        Vec2(leftOffset + dist * i.toFloat()/(n-1), y)
+    }
+
+    val rowHeight = 1f / aspectRatio / 5
+
+    for (i in 0..9) {
+        positions.add(getPos(i, 10, 0.5f * rowHeight, 0.04f, 0.04f))
+    }
+
+    for (i in 0..8) {
+        positions.add(getPos(i, 9, 1.5f * rowHeight, 0.10f, 0.10f))
+    }
+
+    for (i in 0..9) {
+        positions.add(getPos(i, 10, 2.5f * rowHeight, 0.04f, 0.04f))
+    }
+
+    for (i in 0..8) {
+        positions.add(getPos(i, 5, 3.5f* rowHeight, 0.14f, 0.14f))
+    }
+
+    return positions
+}
+
 fun thumbCirclesPositions(aspectRatio: Float): List<Vec2> {
+
+    // does not work at the moment
 
     val positions = mutableListOf<Vec2>()
 
@@ -44,7 +75,7 @@ fun thumbCirclesPositions(aspectRatio: Float): List<Vec2> {
     val getPosOnCircle = { r: Float, angle1: Double, angle2: Double, i: Int, n: Int, center: Vec2 ->
         val t = i.toFloat() / (n-1)
         val angle = angle1 * t + angle2 * (1.0f - t)
-        Vec2(r * sin(angle1 * PI) + center.x, r * cos(angle1 * PI) + center.y)
+        Vec2(r * sin(angle * PI) + center.x, r * cos(angle * PI) + center.y)
     }
 
     // including the shared
