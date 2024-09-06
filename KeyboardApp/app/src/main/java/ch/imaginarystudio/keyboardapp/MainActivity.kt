@@ -62,7 +62,7 @@ import splitties.systemservices.inputMethodManager
 
     Bugs:
         -[ ] Keyboard crash on landscape
-        -[ ] App crash on select other IME
+        -[x] App crash on select other IME
         -[ ] Handle return/newline better
  */
 

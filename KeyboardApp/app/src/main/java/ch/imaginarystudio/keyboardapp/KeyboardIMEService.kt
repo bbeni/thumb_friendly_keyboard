@@ -72,7 +72,6 @@ class KeyboardIMEService : LifecycleInputMethodService(),
 
     override fun onDestroy() {
         super.onDestroy()
-        handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     }
 
     //Lifecycle Methods
