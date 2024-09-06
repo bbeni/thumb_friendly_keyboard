@@ -53,7 +53,7 @@ fun thumbCirclesPositions(aspectRatio: Float): List<Vec2> {
     //
     // ring radii squared are
     //     1.32, 1, 0.72, 0.49, 0.3
-    // corresponding number of segements
+    // corresponding number of segments
     //     2 (mid shared), 5 (mid shared), 6, 4, 3
     // total positions
     //     3 + 9 + 12 + 8 + 6 = 38
@@ -63,10 +63,10 @@ fun thumbCirclesPositions(aspectRatio: Float): List<Vec2> {
 
     val tPosL = Vec2(-0.45, 0.04)
     val tPosR = Vec2(1.45, 0.04)
-    val rs = mutableListOf<Float>(1.32f, 1f, 0.72f, 0.49f, 0.3f).map { x -> sqrt(x) }
+    val rs = mutableListOf(1.32f, 1f, 0.72f, 0.49f, 0.3f).map { x -> sqrt(x) }
 
-    val nSeg1 = listOf<Int>(2, 5) // shared middle position
-    val nSeg2 = listOf<Int>(6, 4, 3) // non shared
+    val nSeg1 = listOf(2, 5) // shared middle position
+    val nSeg2 = listOf(6, 4, 3) // non shared
 
     val anglesStart = listOf(0.24, 0.295, 0.302, 0.25, 0.15)
     val anglesEnd = listOf(0.19, 0.101, 0.0, 0.0, 0.0)
@@ -79,8 +79,7 @@ fun thumbCirclesPositions(aspectRatio: Float): List<Vec2> {
     }
 
     // including the shared
-    nSeg1.forEachIndexed { index, n ->
-        val ind = index
+    nSeg1.forEachIndexed { ind, n ->
         for (i in 0 until n) {
             positions.add(getPosOnCircle(rs[ind], anglesStart[ind], anglesEnd[ind], i, n, tPosL))
         }

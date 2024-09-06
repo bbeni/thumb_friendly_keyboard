@@ -35,8 +35,7 @@ class KeyboardIMEService : LifecycleInputMethodService(),
 {
 
     override fun onCreateInputView(): View {
-        var v = ComposeKeyboardView(this)
-        return v
+        return ComposeKeyboardView(this)
     }
 
     override fun onCreate() {
@@ -167,7 +166,6 @@ abstract class LifecycleInputMethodService : InputMethodService(), LifecycleOwne
         super.onBindInput()
         dispatcher.onServicePreSuperOnBind()
     }
-
 
     // this method is added only to annotate it with @CallSuper.
     // In usual service super.onStartCommand is no-op, but in LifecycleService

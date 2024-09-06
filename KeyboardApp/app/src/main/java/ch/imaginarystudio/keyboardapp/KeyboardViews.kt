@@ -26,7 +26,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.unit.dp
 
 @Composable
@@ -101,16 +100,16 @@ data class KeyInfo(
         if (phase == 0) return
         assert(phase == 2)
 
-        val poly_a = Polygon(pointsRight)
-        val poly_b = Polygon(pointsLeft)
+        val polyA = Polygon(pointsRight)
+        val polyB = Polygon(pointsLeft)
 
-        if (poly_a.contains(position)) {
-            boundary = poly_a
+        if (polyA.contains(position)) {
+            boundary = polyA
             return
         }
 
-        if (poly_b.contains(position)) {
-            boundary = poly_b
+        if (polyB.contains(position)) {
+            boundary = polyB
             return
         }
 
@@ -118,14 +117,12 @@ data class KeyInfo(
     }
 }
 
-
-
 fun recalculateBoundaries(keyInfos: SnapshotStateList<KeyInfo>, aspect: Float) {
     if (keyInfos.isEmpty()) return
 
-    val height = 1 / aspect;
+    val height = 1 / aspect
 
-    val canvasBoundary = Polygon(mutableListOf<Vec2>(
+    val canvasBoundary = Polygon(mutableListOf(
         Vec2(0f, 0f),
         Vec2(0f, height),
         Vec2(1f, height),
@@ -158,7 +155,7 @@ fun closestKey(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2): Key {
     var closestIndex = -1
     var closestDist = Float.MAX_VALUE
     for (i in 0 until keyInfos.count()) {
-        var dist = (position - keyInfos[i].position).norm()
+        val dist = (position - keyInfos[i].position).norm()
         if (dist < closestDist) {
             closestDist = dist.toFloat()
             closestIndex = i
@@ -248,7 +245,6 @@ fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: Keyboa
     }
 }
 
-@OptIn(ExperimentalTextApi::class)
 @Composable
 fun KeyboardConstructView(keyboardData: KeyboardData, keyboardState: KeyboardState, theme: KeyboardTheme) {
 
@@ -287,7 +283,7 @@ fun KeyboardConstructView(keyboardData: KeyboardData, keyboardState: KeyboardSta
                 .pointerInput(Unit) {
                     detectTapGestures { offset ->
 
-                        var tapPos = offsetToPosition(offset, size.width)
+                        val tapPos = offsetToPosition(offset, size.width)
 
                         var toSelect = keysPageAlpha
                         var pageSelected = keyboardData.alphaPage
@@ -310,8 +306,8 @@ fun KeyboardConstructView(keyboardData: KeyboardData, keyboardState: KeyboardSta
                         }
 
                         if (pageSelection.value > 1) {
-                            keyboardState.modifierNumeric.value = false;
-                            keyboardData.finishedConstruction.value = true;
+                            keyboardState.modifierNumeric.value = false
+                            keyboardData.finishedConstruction.value = true
                         }
 
                     }

@@ -90,9 +90,6 @@ fun MyText(text: String) {
 
 @Composable
 fun MainView() {
-    val darkMode = remember { mutableStateOf(false) }
-    val editMode = remember { mutableStateOf(true) }
-
     Column(
         modifier = Modifier
             .padding(0.dp)
@@ -196,10 +193,9 @@ fun SelectIMEButton(text: String = "Select IME") {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DropdownSettingCol(description: String ) {
-    val languages = listOf<String>(
+    val languages = listOf(
         "en-US",
         "de-DE",
         "de-CH",
@@ -242,8 +238,7 @@ fun DropdownSettingCol(description: String ) {
 }
 
 @Composable
-fun SettingsPanelView(dark_mode: MutableState<Boolean>, edit_mode: MutableState<Boolean>  ) {
-    val list = (1..10).map { it.toString() }
+fun SettingsPanelView(darkMode: MutableState<Boolean>, editMode: MutableState<Boolean>) {
     Column (
         modifier=Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Top,
@@ -251,8 +246,8 @@ fun SettingsPanelView(dark_mode: MutableState<Boolean>, edit_mode: MutableState<
         content = {
             EnableIMEButton()
             SelectIMEButton()
-            SwitchSettingCol(description = "Editing Keyboard", edit_mode)
-            SwitchSettingCol(description = "Dark Mode", dark_mode)
+            SwitchSettingCol(description = "Editing Keyboard", editMode)
+            SwitchSettingCol(description = "Dark Mode", darkMode)
             DropdownSettingCol(description = "Language")
         }
     )

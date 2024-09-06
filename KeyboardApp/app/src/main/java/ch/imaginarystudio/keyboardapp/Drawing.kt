@@ -28,17 +28,18 @@ fun offsetsForDrawing(corners: List<Vec2>, width: Float, shrinkPixels: Float = 0
             val iPrev = (i - 1 + corners.count()) % corners.count()
             val iNext = (i + 1) % corners.count()
 
-            var xToPrev = (corners[iPrev] - corner).normalized()
-            var xToNext = (corners[iNext] - corner).normalized()
+            // normalized directions from this corner (x) to the previous and next
+            val xToPrev = (corners[iPrev] - corner).normalized()
+            val xToNext = (corners[iNext] - corner).normalized()
 
-            val perpPrev = Vec2(-xToPrev.y, xToPrev.x)
-            val perpNext = Vec2(xToNext.y, -xToNext.x)
+            val perpendicularPrevious = Vec2(-xToPrev.y, xToPrev.x)
+            val perpendicularNext = Vec2(xToNext.y, -xToNext.x)
 
             // calculate the factors to by which to move the corner inwards
             // the dot product is used to get the projection onto the perpendicular
             // TODO: make sure the dot products are never 0..
-            val f1 = shrinkPixelsF / (perpPrev * xToNext)
-            val f2 = shrinkPixelsF / (perpNext * xToPrev)
+            val f1 = shrinkPixelsF / (perpendicularPrevious * xToNext)
+            val f2 = shrinkPixelsF / (perpendicularNext * xToPrev)
 
             val shifted = corner + xToNext * f1 + xToPrev * f2
             positionToOffset(shifted, width)
@@ -48,14 +49,14 @@ fun offsetsForDrawing(corners: List<Vec2>, width: Float, shrinkPixels: Float = 0
     // add the first one two times for drawing as a polygon later on
     if (offsets.isNotEmpty()) {
         offsets.add(offsets[0])
-    };
+    }
 
     return offsets.toList()
 }
 
 fun DrawScope.drawPolygon(polygon: Polygon, strokeWidth: Float, color: Color = Color.Black) {
 
-    var corners = offsetsForDrawing(polygon.corners, size.width)
+    val corners = offsetsForDrawing(polygon.corners, size.width)
 
     drawPoints(points = corners,
         PointMode.Polygon,
@@ -66,7 +67,7 @@ fun DrawScope.drawPolygon(polygon: Polygon, strokeWidth: Float, color: Color = C
 
 fun DrawScope.drawKeyField(key: KeyInfo, shrinkPixels: Float, bgColor: Color = Color.DarkGray, borderColor: Color = Color.Black) {
 
-    var corners = offsetsForDrawing(key.boundary.corners, size.width, shrinkPixels)
+    val corners = offsetsForDrawing(key.boundary.corners, size.width, shrinkPixels)
 
     // draw background
     val path = Path()
@@ -99,8 +100,7 @@ fun DrawScope.drawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardSt
     }
 
     // draw keys
-    for ((i, keyInfo) in keyInfos.withIndex()) {
-
+    for (keyInfo in keyInfos) {
         val p = positionToOffset(keyInfo.position, size.width)
 
         drawKeyField(keyInfo, theme.shrinkKeyDp.toPx(), bgColor = Color.Gray)
@@ -108,17 +108,18 @@ fun DrawScope.drawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardSt
         if (keyboardState.modifierShift.value) {
             key = key.uppercase()
         }
+
         drawContext.canvas.nativeCanvas.drawText(
             key, p.x, p.y + theme.keyPaint.textSize/2, theme.keyPaint
         )
     }
 }
 
-fun DrawScope.DrawBackspace(pos: Offset, keyPaint: Paint) {
-    var left = pos.x - keyPaint.textSize
-    var right = pos.x + keyPaint.textSize
-    var top = pos.y + keyPaint.textSize/2
-    var bot = pos.y - keyPaint.textSize/2
+fun DrawScope.drawBackspace(pos: Offset, keyPaint: Paint) {
+    val left = pos.x - keyPaint.textSize
+    val right = pos.x + keyPaint.textSize
+    val top = pos.y + keyPaint.textSize/2
+    val bot = pos.y - keyPaint.textSize/2
 
     drawContext.canvas.nativeCanvas.drawRoundRect(
         left, top, right, bot, 2f, 2f, keyPaint

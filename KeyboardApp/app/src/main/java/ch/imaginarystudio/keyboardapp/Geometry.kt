@@ -1,10 +1,10 @@
 package ch.imaginarystudio.keyboardapp
 
 import android.util.Log
-import androidx.compose.ui.geometry.Offset
 import ch.imaginarystudio.keyboardapp.itertools.Combinations.combinations
 import kotlin.math.abs
 import kotlin.math.absoluteValue
+import kotlin.math.atan
 import kotlin.math.sqrt
 
 object Settings{
@@ -15,7 +15,6 @@ object Settings{
 // Point is actually a 2Vec
 data class Vec2(var x: Double, var y: Double) {
     constructor(x: Float, y: Float): this(x.toDouble(), y.toDouble())
-    constructor(offset: Offset): this(offset.x, offset.y)
     operator fun times(t: Double): Vec2 = Vec2(t * x, t * y)
     operator fun plus(other: Vec2): Vec2 = Vec2(x + other.x, y + other.y)
     operator fun minus(other: Vec2): Vec2 = Vec2(x - other.x, y - other.y)
@@ -33,7 +32,7 @@ data class Vec2(var x: Double, var y: Double) {
     }
 }
 
-class Line(val a: Vec2, val b: Vec2) {
+class Line(private val a: Vec2, private val b: Vec2) {
     fun pointAtT(t: Double) = a * t + b
     fun intersectionPoint(line: Line): Vec2? {
         val c = line.b - b
@@ -125,7 +124,10 @@ private fun cutPoints(polygon: Polygon, line:Line): Pair<MutableList<Vec2>, Muta
         val edge = Segment(c2, c1)
         if (line.intersectsSegment(edge)) {
             val ip = line.intersectionPoint(edge.toLine())
-            if (ip == null) return null
+
+            if (ip == null) {
+                return null
+            }
             points.add(ip)
             indices.add(i)
         }
@@ -148,7 +150,7 @@ fun constructPolygonAroundPoint(
         .filter { it != v0 }
         .sortedBy { (it-v0).norm() }
         .take(maxNearestNeighboursConsidered ?: vListSupport.size)
-        .sortedBy { Math.atan(((it.x-v0.x)/(it.y-v0.y)).toDouble())}
+        .sortedBy { atan(((it.x-v0.x)/(it.y-v0.y))) }
         .map { constructPerpendicularBisector(v0, it) }
         .toMutableList()
 

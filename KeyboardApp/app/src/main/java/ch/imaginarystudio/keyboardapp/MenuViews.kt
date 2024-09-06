@@ -34,7 +34,7 @@ fun SelectKeyboardGroup(selectedOption: MutableState<String>, options: Map<Strin
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        options.forEach { it ->
+        options.forEach {
             val text = it.key
             Row(
                 modifier = Modifier
