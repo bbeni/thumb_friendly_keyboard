@@ -54,9 +54,16 @@ import splitties.systemservices.inputMethodManager
 
 /*
     Goals:
-        - Multiple Pages of Keyboard: Letters, Numbers, ...
-        - Save Keyboards persistently
-        - Have a good default Keyboard
+        -[x] Multiple Pages of keyboard: Letters, Numbers, ...
+        -[ ] Save keyboards persistently
+        -[ ] Predefined Grid/Patterns for placing keys
+        -[ ] Have a good default Keyboard
+        -[ ] Languages
+
+    Bugs:
+        -[ ] Keyboard crash on landscape
+        -[ ] App crash on select other IME
+        -[ ] Handle return/newline better
  */
 
 class MainActivity : ComponentActivity() {

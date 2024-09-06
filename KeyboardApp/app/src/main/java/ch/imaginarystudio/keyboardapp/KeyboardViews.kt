@@ -270,15 +270,13 @@ fun DrawScope.DrawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardSt
 
     // draw keys
     for ((i, keyInfo) in keyInfos.withIndex()) {
-        //val p = Offset(keyInfo.position.x.toFloat(), keyInfo.position.y.toFloat());
+        val p = Offset(keyInfo.position.x.toFloat(), keyInfo.position.y.toFloat());
 
-        var offset = Offset(0.0f, 0.0f)
-        keyInfo.boundary.corners.forEach {
-            offset += Offset(it.x.toFloat(), it.y.toFloat())
-        }
-        offset /= keyInfo.boundary.corners.count().toFloat() + 0.00000001f
-
-        //val p = Offset(keyInfo.position.x.toFloat(), keyInfo.position.y.toFloat());
+        //var p = Offset(0.0f, 0.0f)
+        //keyInfo.boundary.corners.forEach {
+        //    p += Offset(it.x.toFloat(), it.y.toFloat())
+        //}
+        //p /= keyInfo.boundary.corners.count().toFloat() + 0.00000001f
 
         drawKeyField(keyInfo, theme.shrinkKeyDp.toPx(), bgColor = Color.Gray)
         var key = keyInfo.key.code
@@ -286,7 +284,7 @@ fun DrawScope.DrawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardSt
             key = key.uppercase()
         }
         drawContext.canvas.nativeCanvas.drawText(
-            key, offset.x, offset.y + theme.keyPaint.textSize/2, theme.keyPaint
+            key, p.x, p.y + theme.keyPaint.textSize/2, theme.keyPaint
         )
     }
 }
