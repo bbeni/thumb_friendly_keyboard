@@ -115,7 +115,7 @@ fun MenuView(selected: MutableState<String> , options: Map<String, KeyboardData>
         ){
             SelectIMEButton("Change Android Keyboard")
             Button(
-                modifier =Modifier.padding(5.dp),
+                modifier = Modifier.padding(10.dp),
                 onClick = {
                     state.showSettings.value = false
                 }
@@ -130,13 +130,15 @@ fun MenuView(selected: MutableState<String> , options: Map<String, KeyboardData>
             Text(
                 text="Available Keyboards",
                 modifier = Modifier
-                    .padding(5.dp),
+                    .padding(10.dp, 3.dp),
                 fontSize = 25.sp,
             )
         }
 
         Row (
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             SelectKeyboardGroup(selectedOption = selected, options = options)

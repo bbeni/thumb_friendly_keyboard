@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
 fun MyText(text: String) {
     Text(
         modifier = Modifier
-            .padding(15.dp, 0.dp),
+            .padding(25.dp, 2.dp),
         text = text,
     )
 }
@@ -131,7 +131,7 @@ fun TestInputView() {
         label = { Text(text = stringResource(id = R.string.hint_to_test_keyboard))},
         modifier = Modifier
             .fillMaxSize()
-            .padding(15.dp),
+            .padding(10.dp),
         singleLine = false,
         maxLines = 4,
     )
@@ -150,22 +150,32 @@ fun SwitchSettingCol(description: String, checked: MutableState<Boolean>) {
     }
 }
 
-
-
 @Composable
-fun EnableIMEButton(text: String = "Enable IME") {
+fun MyStartIntentButton(intent: Intent, text: String) {
     Row (
         modifier = Modifier
             .padding(5.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ){
         val ctx = LocalContext.current
-        Button(onClick = {
-            ctx.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
-        }) {
+        Button(
+            onClick = {
+                      ctx.startActivity(intent)
+            },
+            modifier = Modifier.padding(5.dp)
+        ) {
             Text(text = text)
         }
     }
+}
+
+
+@Composable
+fun EnableIMEButton(text: String = "Enable IME") {
+    MyStartIntentButton(
+        intent = Intent(Settings.ACTION_INPUT_METHOD_SETTINGS),
+        text = text
+    )
 }
 
 @Composable
@@ -175,10 +185,12 @@ fun SelectIMEButton(text: String = "Select IME") {
             .padding(5.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ){
-        val ctx = LocalContext.current
-        Button(onClick = {
-            inputMethodManager.showInputMethodPicker()
-        }) {
+        Button(
+            onClick = {
+                inputMethodManager.showInputMethodPicker()
+            },
+            modifier = Modifier.padding(5.dp)
+        ) {
             Text(text = text)
         }
     }
