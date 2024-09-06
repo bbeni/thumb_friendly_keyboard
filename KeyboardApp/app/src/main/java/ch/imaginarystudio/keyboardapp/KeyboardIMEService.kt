@@ -116,7 +116,7 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
 
         val fillDefaultKeyInfos = { keys: List<Key> ->
             val l = mutableStateListOf<KeyInfo>()
-            val positions = defaultPositions(1f, keyboardTheme.aspectRatio)
+            val positions = thumbCirclesPositions(keyboardTheme.aspectRatio)
             keys.forEachIndexed { i, k ->
                 addKey(l, positions[i], k)
 

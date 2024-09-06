@@ -1,6 +1,5 @@
 package ch.imaginarystudio.keyboardapp
 
-import android.graphics.Paint
 import android.text.TextUtils
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
@@ -23,18 +22,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathFillType
-import androidx.compose.ui.graphics.PointMode
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Fill
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.ExperimentalTextApi
@@ -135,12 +124,13 @@ data class KeyInfo(
 fun recalculateBoundaries(keyInfos: SnapshotStateList<KeyInfo>, size: IntSize) {
     if (keyInfos.isEmpty()) return
 
-    val offsetPixels = 5f
+    val height = size.height.toFloat() / size.width;
+
     val canvasBoundary = Polygon(mutableListOf<Vec2>(
-        Vec2(offsetPixels, offsetPixels),
-        Vec2(offsetPixels,size.height.toFloat() - offsetPixels),
-        Vec2(size.width.toFloat() - offsetPixels, size.height.toFloat() - offsetPixels),
-        Vec2(size.width.toFloat() - offsetPixels, offsetPixels),
+        Vec2(0f, 0f),
+        Vec2(0f, height),
+        Vec2(1f, height),
+        Vec2(1f, 0f),
     ))
 
     if (keyInfos.count() == 1) {
@@ -164,146 +154,6 @@ fun addKey(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2, key: Key) {
     keyInfos.add(keyInfo)
 }
 
-fun DrawScope.drawHexagon(pos: Offset, scale: Float) {
-    drawPoints(
-        points = listOf(
-            pos + Offset(0.5f, 0.8660254f) * scale,
-            pos + Offset(1f, 0f) * scale,
-            pos + Offset(0.5f, -0.8660254f) * scale,
-            pos + Offset(-0.5f, -0.8660254f) * scale,
-            pos + Offset(-1f, 0f) * scale,
-            pos + Offset(-0.5f, 0.8660254f) * scale,
-            pos + Offset(0.5f, 0.8660254f) * scale,
-        ),
-        PointMode.Polygon,
-        brush = Brush.radialGradient(listOf(Color.Black, Color.Black)),
-        strokeWidth = 3f,
-    )
-}
-
-// TODO: this is not so efficient..
-fun offsetsForDrawing(corners: List<Vec2>) : List<Offset> {
-    val offsets = corners
-        .map { c -> Offset(c.x.toFloat(), c.y.toFloat()) }
-        .toMutableList()
-
-    // add the first one for drawing as a polygon later on
-    if (offsets.isNotEmpty()) {
-        offsets.add(offsets[0])
-    };
-    return offsets.toList()
-}
-
-fun DrawScope.drawPolygon(polygon: Polygon, strokeWidth: Float, color: Color = Color.Black) {
-    /*
-    for (i in 0 until polygon.corners.count()) {
-        val p1 = polygon.corners[i]
-        val p2 = polygon.corners[(i+1) % polygon.corners.count()]
-        drawLine(
-            brush = SolidColor(color),
-            Offset(p1.x.toFloat(), p1.y.toFloat()),
-            Offset(p2.x.toFloat(), p2.y.toFloat()),
-            strokeWidth = strokeWidth,
-        )
-    } */
-
-    var corners = offsetsForDrawing(polygon.corners)
-
-    drawPoints(points = corners,
-        PointMode.Polygon,
-        brush = Brush.radialGradient(listOf(Color.Black, color)),
-        strokeWidth = strokeWidth,
-    )
-}
-
-fun DrawScope.drawKeyField(key: KeyInfo, shrinkPixels: Float, bgColor: Color=Color.DarkGray, borderColor: Color = Color.Black) {
-    /*
-    for (i in 0 until polygon.corners.count()) {
-        val p1 = polygon.corners[i]
-        val p2 = polygon.corners[(i+1) % polygon.corners.count()]
-        drawLine(
-            brush = SolidColor(color),
-            Offset(p1.x.toFloat(), p1.y.toFloat()),
-            Offset(p2.x.toFloat(), p2.y.toFloat()),
-            strokeWidth = strokeWidth,
-        )
-    } */
-
-    val corners = offsetsForDrawing(
-        //key.boundary.shrunkCorners(0.02f, key.position)
-        key.boundary.shrunkCornersPerpendicularToBorder(shrinkPixels)
-    )
-
-    // draw background
-    val path = Path()
-    path.moveTo(corners[0].x, corners[0].y)
-    path.fillType = PathFillType.EvenOdd
-    for (c in corners) {
-        path.lineTo(c.x, c.y)
-    }
-    path.close()
-    drawPath(path = path, color = bgColor)
-
-    drawPoints(points = corners,
-        PointMode.Polygon,
-        brush = SolidColor(borderColor),
-        cap = StrokeCap.Round,
-        strokeWidth = 2.0f,
-    )
-
-
-}
-
-fun DrawScope.DrawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardState, theme: KeyboardTheme) {
-
-    // draw background
-    drawRoundRect(
-        brush = Brush.linearGradient(listOf(Color.Gray,Color.DarkGray)),
-        cornerRadius = CornerRadius(4f, 4f),
-        style = Fill
-    )
-
-    var keyInfos = keyboardData.alphaPage
-    if (keyboardState.modifierNumeric.value) {
-        keyInfos = keyboardData.numericPage
-    }
-
-    // draw keys
-    for ((i, keyInfo) in keyInfos.withIndex()) {
-        val p = Offset(keyInfo.position.x.toFloat(), keyInfo.position.y.toFloat());
-
-        //var p = Offset(0.0f, 0.0f)
-        //keyInfo.boundary.corners.forEach {
-        //    p += Offset(it.x.toFloat(), it.y.toFloat())
-        //}
-        //p /= keyInfo.boundary.corners.count().toFloat() + 0.00000001f
-
-        drawKeyField(keyInfo, theme.shrinkKeyDp.toPx(), bgColor = Color.Gray)
-        var key = keyInfo.key.code
-        if (keyboardState.modifierShift.value) {
-            key = key.uppercase()
-        }
-        drawContext.canvas.nativeCanvas.drawText(
-            key, p.x, p.y + theme.keyPaint.textSize/2, theme.keyPaint
-        )
-    }
-}
-
-fun DrawScope.DrawBackspace(pos: Offset, keyPaint: Paint) {
-    var left = pos.x - keyPaint.textSize
-    var right = pos.x + keyPaint.textSize
-    var top = pos.y + keyPaint.textSize/2
-    var bot = pos.y - keyPaint.textSize/2
-
-    drawContext.canvas.nativeCanvas.drawRoundRect(
-        left, top, right, bot, 2f, 2f, keyPaint
-    )
-
-    // TODO: make arrow head
-    drawContext.canvas.nativeCanvas.drawCircle(
-        left, pos.y, keyPaint.textSize/2, keyPaint
-    )
-}
 
 fun closestKey(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2): Key {
     var closestIndex = -1
@@ -360,6 +210,15 @@ fun handleKey(keyboardState: KeyboardState, key: Key, ic: InputConnection) {
     }
 }
 
+// map from offset to normalized coordinates
+fun offsetToPosition(offset: Offset, width: Int): Vec2 {
+    return Vec2( offset.x / width, offset.y / width )
+}
+fun positionToOffset(position: Vec2, width: Float): Offset {
+    return Offset((position.x * width).toFloat(), (position.y * width).toFloat())
+}
+
+
 @Composable
 fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: KeyboardTheme) {
 
@@ -372,19 +231,22 @@ fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: Keyboa
             .fillMaxWidth()
             .pointerInput(Unit) {
                 detectTapGestures { offset ->
+                    val tapPos = offsetToPosition(offset, size.width)
+
                     // select page and find pressed key
                     var page = keyboardData.alphaPage
                     if (state.modifierNumeric.value) {
                         page = keyboardData.numericPage
                     }
-                    val key = closestKey(page, Vec2(offset.x, offset.y))
+
+                    val key = closestKey(page, tapPos)
                     val ic = (ctx as KeyboardIMEService).currentInputConnection
 
                     handleKey(state, key, ic)
                 }
             }
     ) {
-        DrawKeyboard(keyboardData, state, theme)
+        drawKeyboard(keyboardData, state, theme)
     }
 }
 
@@ -426,6 +288,9 @@ fun KeyboardConstructView(keyboardData: KeyboardData, keyboardState: KeyboardSta
                 .fillMaxWidth()
                 .pointerInput(Unit) {
                     detectTapGestures { offset ->
+
+                        var tapPos = offsetToPosition(offset, size.width)
+
                         var toSelect = keysPageAlpha
                         var pageSelected = keyboardData.alphaPage
 
@@ -434,10 +299,9 @@ fun KeyboardConstructView(keyboardData: KeyboardData, keyboardState: KeyboardSta
                             pageSelected = keyboardData.numericPage
                         }
 
-                        val pos = Vec2(offset.x, offset.y)
                         val key = toSelect[curSelection.value]
 
-                        addKey(pageSelected, pos, key)
+                        addKey(pageSelected, tapPos, key)
                         recalculateBoundaries(pageSelected, size)
                         curSelection.value += 1
 
@@ -448,13 +312,14 @@ fun KeyboardConstructView(keyboardData: KeyboardData, keyboardState: KeyboardSta
                         }
 
                         if (pageSelection.value > 1) {
+                            keyboardState.modifierNumeric.value = false;
                             keyboardData.finishedConstruction.value = true;
                         }
 
                     }
                 }
         ) {
-            DrawKeyboard(keyboardData, keyboardState, theme)
+            drawKeyboard(keyboardData, keyboardState, theme)
         }
     }
 }

@@ -6,7 +6,7 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 
-fun defaultPositions(widthPixels: Float, aspectRatio: Float): List<Vec2> {
+fun thumbCirclesPositions(aspectRatio: Float): List<Vec2> {
 
     val positions = mutableListOf<Vec2>()
 
@@ -70,5 +70,5 @@ fun defaultPositions(widthPixels: Float, aspectRatio: Float): List<Vec2> {
         }
     }
 
-    return positions.map { p -> Vec2(p.x * widthPixels, p.y * widthPixels * aspectRatio) }
+    return positions.map { p -> Vec2(p.x, p.y / aspectRatio) }
 }
