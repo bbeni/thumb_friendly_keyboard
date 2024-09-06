@@ -14,10 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.unit.dp
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -31,12 +27,6 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 
-// At the top level of your kotlin file:
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
-
-object DS {
-   val edit_mode = booleanPreferencesKey("edit_mode")
-}
 
 class KeyboardIMEService : LifecycleInputMethodService(),
     ViewModelStoreOwner,
@@ -44,30 +34,19 @@ class KeyboardIMEService : LifecycleInputMethodService(),
 {
 
     override fun onCreateInputView(): View {
-        /*var view = ComposeView(this)
-        view.setContent {
-            KeyboardAppTheme {
-                Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.background) {
-                    TestView()
-                }
-            }
-        }*/
-
         var v = ComposeKeyboardView(this)
+        return v
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        savedStateRegistryController.performRestore(null)
 
         window?.window?.decorView?.let {view->
             view.setViewTreeLifecycleOwner(this)
             view.setViewTreeViewModelStoreOwner(this)
             view.setViewTreeSavedStateRegistryOwner(this)
         }
-
-        return v
-    }
-
-
-    override fun onCreate() {
-        super.onCreate()
-        savedStateRegistryController.performRestore(null)
     }
 
     override fun onDestroy() {
@@ -94,8 +73,6 @@ class KeyboardIMEService : LifecycleInputMethodService(),
         get() = savedStateRegistryController.savedStateRegistry
 
 }
-
-
 
 class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
     @Composable
