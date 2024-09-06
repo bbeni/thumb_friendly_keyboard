@@ -217,7 +217,6 @@ fun positionToOffset(position: Vec2, width: Float): Offset {
     return Offset((position.x * width).toFloat(), (position.y * width).toFloat())
 }
 
-
 @Composable
 fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: KeyboardTheme) {
 

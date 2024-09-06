@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Paint
 import android.inputmethodservice.InputMethodService
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import androidx.annotation.CallSuper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
@@ -49,6 +50,10 @@ class KeyboardIMEService : LifecycleInputMethodService(),
         }
     }
 
+    override fun onStartInputView(editorInfo: EditorInfo?, restarting: Boolean) {
+        super.onStartInputView(editorInfo, restarting)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
     }
@@ -78,8 +83,6 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
     @Composable
     override fun Content() {
 
-        // *insert rage comment here* because it is hard to share state between keyboard and main activity
-
         val keyboardTheme = KeyboardTheme (
             shrinkKeyDp = 1.dp,
             keyPaint = Paint().apply {
@@ -106,23 +109,44 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
             showSettings = remember { mutableStateOf(false) }
         )
 
-        val keyboardData1 = KeyboardData (
-            finishedConstruction = remember { mutableStateOf(false) },
-            alphaPage = remember { mutableStateListOf<KeyInfo>() },
-            numericPage = remember { mutableStateListOf<KeyInfo>() }
+        val keyboardOptions = mapOf(
+            "Default Keyboard" to KeyboardData (
+                finishedConstruction = remember { mutableStateOf(true) },
+                alphaPage = remember { fillDefaultKeyInfos(keysPageAlpha) },
+                numericPage = remember { fillDefaultKeyInfos(keysPageNumeric) }
+            ),
+            "Custom Keyboard 1" to KeyboardData (
+                finishedConstruction = remember { mutableStateOf(false) },
+                alphaPage = remember { mutableStateListOf<KeyInfo>() },
+                numericPage = remember { mutableStateListOf<KeyInfo>() }
+            ),
+            "Custom Keyboard 2" to KeyboardData (
+                finishedConstruction = remember { mutableStateOf(false) },
+                alphaPage = remember { mutableStateListOf<KeyInfo>() },
+                numericPage = remember { mutableStateListOf<KeyInfo>() }
+            ),
+            "Custom Keyboard 3" to KeyboardData (
+                finishedConstruction = remember { mutableStateOf(false) },
+                alphaPage = remember { mutableStateListOf<KeyInfo>() },
+                numericPage = remember { mutableStateListOf<KeyInfo>() }
+            ),
         )
 
-        val keyboardData = KeyboardData (
-            finishedConstruction = remember { mutableStateOf(true) },
-            alphaPage = remember { fillDefaultKeyInfos(keysPageAlpha) },
-            numericPage = remember { fillDefaultKeyInfos(keysPageNumeric) }
-        )
+        val selectedKeyboard = remember { mutableStateOf("Default Keyboard") }
 
-        if (!keyboardData.finishedConstruction.value) {
-            KeyboardConstructView(keyboardData, keyboardState, keyboardTheme)
-        } else {
-            KeyboardView(keyboardData, keyboardState, keyboardTheme)
-            //MockKeyboard()
+        if (selectedKeyboard.value in keyboardOptions) {
+            val keyboardData = keyboardOptions.getValue(selectedKeyboard.value)
+
+            if (!keyboardData.finishedConstruction.value) {
+                KeyboardConstructView(keyboardData, keyboardState, keyboardTheme)
+            } else {
+                if (keyboardState.showSettings.value) {
+                    MenuView(selectedKeyboard, keyboardOptions, keyboardData, keyboardState, keyboardTheme)
+                } else {
+                    KeyboardView(keyboardData, keyboardState, keyboardTheme)
+                    //MockKeyboard()
+                }
+            }
         }
     }
 }

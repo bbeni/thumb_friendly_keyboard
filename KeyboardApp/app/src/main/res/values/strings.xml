@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">Thumb Friendly Keyboard</string>
     <string name="settings_subtitle">Settings</string>
-    <string name="hint_to_test_keyboard">Test Keyboard here!</string>
+    <string name="welcome_hints">Hi! Please go through steps 1 to 4 below</string>
+    <string name="enable_ime_steps">1. Enable \'Thumb Friendly Keyboard\'</string>
+    <string name="select_ime_steps">2. Select \'English (United States) Thumb Friendly Keyboard\'</string>
+    <string name="hint_to_test_keyboard">3. Open keyboard here</string>
+    <string name="click_settings_steps">4. Click \'⁝\' on the keyboard to select/construct keyboards</string>
 </resources>

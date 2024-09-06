@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -57,7 +56,7 @@ import splitties.systemservices.inputMethodManager
         -[x] Multiple Pages of keyboard: Letters, Numbers, ...
         -[ ] Save keyboards persistently
         -[ ] Predefined Grid/Patterns for placing keys
-        -[ ] Have a good default Keyboard
+        -[x] Have a good default Keyboard
         -[ ] Languages
 
     Bugs:
@@ -84,9 +83,8 @@ class MainActivity : ComponentActivity() {
 fun MyText(text: String) {
     Text(
         modifier = Modifier
-            .fillMaxSize()
             .padding(15.dp, 0.dp),
-        text = text
+        text = text,
     )
 }
 
@@ -104,20 +102,17 @@ fun MainView() {
         horizontalAlignment = Alignment.Start,
     ) {
         TitleView()
-        MyText(text = "Hello!  To start press 'Enable the Keyboard' then switch 'Thumb Friendly Keyboard' on and come back")
-        EnableIMEButton("Enable the Keyboard")
-        MyText(text = "Now it is time to 'Select the Keyboard'")
-        SelectIMEButton("Select the Keyboard")
-        MyText(text =
-            "Click on the test text field below. " +
-            "An empty space will appear with a red text on top telling you which Key is next. " +
-            "One by one place each key where you like it. " +
-            "When all keys are done, indicated when the red bar disappears, the keyboard is ready to use! " +
-            "Upon phone restart you might have to do this again..."
-        )
+        MyText(text = "")
+        MyText(text = stringResource(id = R.string.welcome_hints))
+        Column (
+            modifier = Modifier
+                .padding(5.dp)
+        ) {
+            EnableIMEButton(stringResource(id=R.string.enable_ime_steps))
+            SelectIMEButton(stringResource(id=R.string.select_ime_steps))
+        }
         TestInputView()
-        SubTitleView()
-        SettingsPanelView(darkMode, editMode)
+        MyText(text = stringResource(id = R.string.click_settings_steps))
     }
 }
 
@@ -138,7 +133,7 @@ fun TestInputView() {
             .fillMaxSize()
             .padding(15.dp),
         singleLine = false,
-        maxLines = 4
+        maxLines = 4,
     )
 }
 
@@ -161,12 +156,11 @@ fun SwitchSettingCol(description: String, checked: MutableState<Boolean>) {
 fun EnableIMEButton(text: String = "Enable IME") {
     Row (
         modifier = Modifier
-            .fillMaxSize()
-            .padding(15.dp),
+            .padding(5.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ){
         val ctx = LocalContext.current
-        Button(modifier = Modifier.fillMaxWidth(), onClick = {
+        Button(onClick = {
             ctx.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
         }) {
             Text(text = text)
@@ -178,12 +172,11 @@ fun EnableIMEButton(text: String = "Enable IME") {
 fun SelectIMEButton(text: String = "Select IME") {
     Row (
         modifier = Modifier
-            .fillMaxSize()
-            .padding(15.dp),
+            .padding(5.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ){
         val ctx = LocalContext.current
-        Button(modifier = Modifier.fillMaxWidth(), onClick = {
+        Button(onClick = {
             inputMethodManager.showInputMethodPicker()
         }) {
             Text(text = text)
