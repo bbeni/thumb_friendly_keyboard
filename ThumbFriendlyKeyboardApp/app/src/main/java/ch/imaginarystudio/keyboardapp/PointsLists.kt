@@ -3,8 +3,8 @@ package ch.imaginarystudio.keyboardapp
 import kotlin.random.Random
 
 
-public var hexagonal = mutableListOf<Vec2>()
-public var hexagonalSupport = mutableListOf<Vec2>()
+var hexagonal = mutableListOf<Vec2>()
+var hexagonalSupport = mutableListOf<Vec2>()
 val spacing = 0.1
 val width = 9
 val height = 6

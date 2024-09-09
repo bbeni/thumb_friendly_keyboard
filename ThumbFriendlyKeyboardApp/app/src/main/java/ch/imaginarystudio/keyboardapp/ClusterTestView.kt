@@ -30,13 +30,13 @@ import androidx.core.view.setPadding
 
 class ClusterTestView(context: Context?) : LinearLayout(context) {
     init {
-        orientation = LinearLayout.VERTICAL
+        orientation = VERTICAL
         gravity = Gravity.BOTTOM
         setPadding(2)
     }
     init {
         var topBar = LinearLayout(context).apply {
-            orientation = LinearLayout.HORIZONTAL
+            orientation = HORIZONTAL
             gravity = Gravity.RIGHT
             setPadding(15)
         }

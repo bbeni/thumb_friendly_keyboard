@@ -53,10 +53,6 @@ class KeyboardIMEService : LifecycleInputMethodService(),
         super.onStartInputView(editorInfo, restarting)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
-
     //Lifecycle Methods
     private var lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
     override val lifecycle: Lifecycle

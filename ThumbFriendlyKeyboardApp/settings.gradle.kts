@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "KeyboardApp"
+rootProject.name = "ThumbFriendlyKeyboardApp"
 include(":app")
  
