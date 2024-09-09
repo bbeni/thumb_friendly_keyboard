@@ -29,22 +29,28 @@ val keysPageAlpha = listOf(
     Key("q"), Key("w"), Key("e"), Key("r"), Key("t"), Key("y"), Key("u"), Key("i"), Key("o"), Key("p"),
     Key("a"), Key("s"), Key("d"), Key("f"), Key("g"), Key("h"), Key("j"), Key("k"), Key("l"),
     Key("z"), Key("x"), Key("c"), Key("v"), Key("b"), Key("n"), Key("m"),
-    Key(" "), Key("?"), Key("."),
+    Key("⇐", true),
+    Key("?"),
+    Key(" "),
     Key("⇧", true),
     Key("?123", true),
-    Key("⇐", true),
-    Key("⁝", true),
-    Key("↩", true)
-)
+    Key("⁝⁝⁝⁝", true),
+    Key("."),
+    Key("↩", true),
+    )
 
 val keysPageNumeric = listOf(
     Key("1"), Key("2"), Key("3"), Key("4"), Key("5"), Key("6"), Key("7"), Key("8"), Key("9"), Key("0"),
     Key("."), Key(":"), Key(","), Key(";"), Key("-"), Key("["), Key("]"), Key("("), Key(")"),
     Key("_"), Key("%"), Key("&"), Key("*"), Key("/"), Key("\\"), Key("+"),
-    Key("<"), Key(">"), Key("^"),
+
+    Key("⇐", true),
+    Key("<"),
+    Key(">"),
+    Key("^"),
+    Key("?123", true),
+    Key("⁝⁝⁝⁝", true),
     Key("@"),
     Key("↩", true),
-    Key("⇐", true),
-    Key("⁝", true),
-    Key("?123", true),
+
 )

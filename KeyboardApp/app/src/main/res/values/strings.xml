@@ -5,5 +5,5 @@
     <string name="enable_ime_steps">1. Enable \'Thumb Friendly Keyboard\'</string>
     <string name="select_ime_steps">2. Select \'English (United States) Thumb Friendly Keyboard\'</string>
     <string name="hint_to_test_keyboard">3. Open keyboard here</string>
-    <string name="click_settings_steps">4. Click \'⁝\' on the keyboard to select/construct keyboards</string>
+    <string name="click_settings_steps">4. Click \'⁝⁝⁝⁝\' on the keyboard to change/construct keyboards</string>
 </resources>

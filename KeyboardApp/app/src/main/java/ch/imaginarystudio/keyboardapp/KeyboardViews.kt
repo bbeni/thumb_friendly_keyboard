@@ -193,7 +193,7 @@ fun handleKey(keyboardState: KeyboardState, key: Key, ic: InputConnection) {
             "⇧" -> keyboardState.modifierShift.value =
                 !keyboardState.modifierShift.value
 
-            "⁝" -> {
+            "⁝⁝⁝⁝" -> {
                 // TODO: settings
                 keyboardState.showSettings.value = true
             }
