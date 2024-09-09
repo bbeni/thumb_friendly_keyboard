@@ -1,7 +1,10 @@
 package ch.imaginarystudio.keyboardapp
 
 import kotlin.math.PI
+import kotlin.math.atan
 import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -35,70 +38,95 @@ fun regularGrid1(aspectRatio: Float): List<Vec2> {
     return positions
 }
 
-fun thumbCirclesPositions(aspectRatio: Float): List<Vec2> {
 
-    // does not work at the moment
+// The values to generate this are empirically found
+// To see how they have been generated see ipython notebook concentric_keys.ipynb in ideas_and_notes
+fun concentricGrid1(aspectRatio: Float, border: Double = 0.05): List<Vec2> {
 
-    val positions = mutableListOf<Vec2>()
+    val thumbPosition = Vec2(-0.57, 0.06)
+    val radii = listOf(1.268, 1.15, 1.031, 0.9, 0.76)
+    val numbers = listOf(1, 3, 5, 5, 4)
 
-    // values found empirically
-    //
-    // the rectangle is from
-    //     x elem [0 to 1]
-    //     y elem [0 to aspect]
-    //
-    // thumb positions
-    //     left: (-0.45, 0.04)
-    //     right: (1.45, 0.04)
-    //
-    // ring radii squared are
-    //     1.32, 1, 0.72, 0.49, 0.3
-    // corresponding number of segments
-    //     2 (mid shared), 5 (mid shared), 6, 4, 3
-    // total positions
-    //     3 + 9 + 12 + 8 + 6 = 38
-    // start - end angles for left in pi radians
-    //     0.24, 0.295, 0.302, 0.25, 0.15
-    //     0.19, 0.101, 0.0,   0.0,  0.0
+    val height = 1.0 / aspectRatio
+    val upperLeft = Vec2(border, height - border)
+    val lowerRight = Vec2(1.0 - border, border)
 
-    val tPosL = Vec2(-0.45, 0.04)
-    val tPosR = Vec2(1.45, 0.04)
-    val rs = mutableListOf(1.32f, 1f, 0.72f, 0.49f, 0.3f).map { x -> sqrt(x) }
+    return generateConcentric(radii, numbers, thumbPosition, true, upperLeft, lowerRight).map {
+        // flip y axis for printing
+        it.y = height - it.y
+        // shrink it
+        it
+    }
+}
 
-    val nSeg1 = listOf(2, 5) // shared middle position
-    val nSeg2 = listOf(6, 4, 3) // non shared
 
-    val anglesStart = listOf(0.24, 0.295, 0.302, 0.25, 0.15)
-    val anglesEnd = listOf(0.19, 0.101, 0.0, 0.0, 0.0)
-
-    // calculatePosition based on circle, segmented
-    val getPosOnCircle = { r: Float, angle1: Double, angle2: Double, i: Int, n: Int, center: Vec2 ->
-        val t = i.toFloat() / (n-1)
-        val angle = angle1 * t + angle2 * (1.0f - t)
-        Vec2(r * sin(angle * PI) + center.x, r * cos(angle * PI) + center.y)
+fun concentric(pos: Vec2, angles: List<Double>, radius: Double) : List<Vec2> =
+    angles.map {
+        Vec2(cos(it) * radius + pos.x, sin(it) * radius + pos.y)
     }
 
-    // including the shared
-    nSeg1.forEachIndexed { ind, n ->
-        for (i in 0 until n) {
-            positions.add(getPosOnCircle(rs[ind], anglesStart[ind], anglesEnd[ind], i, n, tPosL))
-        }
 
-        for (i in n-1 downTo 1) {
-            positions.add(getPosOnCircle(rs[ind], 1 - anglesStart[ind], 1 - anglesEnd[ind], i, n, tPosR))
+// Functions to determine the angles of a circle intersected with rectangle, used to generate keyboard layout
+// only works when the center of the circle is below and to the left of the topLeftCorner
+// TODO: make it more general
+fun circleRectIntersectionAngleLeft(radius: Double, center: Vec2, topLeftCorner: Vec2): Double {
+    val delta = topLeftCorner - center
+    val dxSquared = radius * radius - delta.y * delta.y
+    val dySquared = radius * radius - delta.x * delta.x
+    val angle1 = if (dxSquared > 0.0) {atan(delta.y / sqrt(dxSquared)) } else {PI}
+    val angle2 = if (dySquared > 0.0) {atan(sqrt(dySquared) / delta.x) } else {PI}
+    return min(angle1, angle2)
+}
+
+// COPYPASTE! TODO: refactor
+// only works when the center of the circle is below and to the left of the topLeftCorner
+fun circleRectIntersectionAngleRight(radius: Double, center: Vec2, lowerRightCorner: Vec2): Double {
+    val delta = lowerRightCorner - center
+    val dxSquared = radius * radius - delta.y * delta.y
+    val dySquared = radius * radius - delta.x * delta.x
+    val angle1 = if (dxSquared > 0.0) {atan(delta.y / sqrt(dxSquared)) } else {-PI}
+    val angle2 = if (dySquared > 0.0) {atan(sqrt(dySquared) / delta.x) } else {-PI}
+    return max(angle1, angle2)
+}
+
+fun linearSpace(a: Double, b: Double, n: Int): List<Double> {
+    if (n == 1) return listOf(a)
+    val step = (b - a) / (n - 1)
+    return (0 until n).map { a + step * it }
+}
+fun generateConcentric(
+    radii: List<Double>,
+    numbers: List<Int>,
+    position: Vec2 = Vec2(-0.55, 0.0),
+    reflect: Boolean = false,
+    upperLeft: Vec2 = Vec2(0.0, 1.0),
+    lowerRight: Vec2 = Vec2(1.0, 0.0)
+) : List<Vec2> {
+
+    val height = upperLeft.y - lowerRight.y
+    val mid = 0.5 * (lowerRight.x + upperLeft.x)
+
+    if (reflect) {
+        lowerRight.x = mid
+    }
+
+    val resultingPoints = mutableListOf<Vec2>()
+
+    for ((r, n) in radii.zip(numbers)) {
+        val a1 = circleRectIntersectionAngleLeft(r, position, upperLeft)
+        val a2 = circleRectIntersectionAngleRight(r, position, lowerRight)
+        val angles = linearSpace(a1, a2, n)
+        val points = concentric(position, angles, r)
+
+        resultingPoints.addAll(points)
+        if (reflect) {
+            for (p in points) {
+                if (p.x < mid - 0.001) {
+                    resultingPoints.add(Vec2(mid + (mid - p.x), p.y))
+                }
+            }
         }
     }
 
-    nSeg2.forEachIndexed { index, n ->
-        val ind = index + nSeg1.count()
-        for (i in 0 until n) {
-            positions.add(getPosOnCircle(rs[ind], anglesStart[ind], anglesEnd[ind], i, n, tPosL))
-        }
-
-        for (i in n-1 downTo 1) {
-            positions.add(getPosOnCircle(rs[ind], 1 - anglesStart[ind], 1 - anglesEnd[ind], i, n, tPosR))
-        }
-    }
-
-    return positions.map { p -> Vec2(p.x, p.y / aspectRatio) }
+    return resultingPoints
 }

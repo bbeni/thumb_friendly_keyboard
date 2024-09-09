@@ -29,12 +29,12 @@ val keysPageAlpha = listOf(
     Key("q"), Key("w"), Key("e"), Key("r"), Key("t"), Key("y"), Key("u"), Key("i"), Key("o"), Key("p"),
     Key("a"), Key("s"), Key("d"), Key("f"), Key("g"), Key("h"), Key("j"), Key("k"), Key("l"),
     Key("z"), Key("x"), Key("c"), Key("v"), Key("b"), Key("n"), Key("m"),
-    Key("."), Key("?"), Key(" "),
+    Key(" "), Key("?"), Key("."),
     Key("⇧", true),
-    Key("↩", true),
+    Key("?123", true),
     Key("⇐", true),
     Key("⁝", true),
-    Key("?123", true),
+    Key("↩", true)
 )
 
 val keysPageNumeric = listOf(

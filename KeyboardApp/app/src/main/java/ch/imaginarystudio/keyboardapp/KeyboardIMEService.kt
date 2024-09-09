@@ -92,15 +92,18 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
             }
         )
 
-        val fillDefaultKeyInfos = { keys: List<Key> ->
+
+        val fillKeyInfos = { keys: List<Key>, positions: List<Vec2> ->
             val l = mutableStateListOf<KeyInfo>()
-            val positions = regularGrid1(keyboardTheme.aspectRatio)
             keys.forEachIndexed { i, k ->
                 addKey(l, positions[i], k)
             }
             recalculateBoundaries(l, keyboardTheme.aspectRatio)
             l
         }
+
+        val regularPositions = regularGrid1(keyboardTheme.aspectRatio)
+        val concentricPositions = concentricGrid1(keyboardTheme.aspectRatio)
 
         val keyboardState = KeyboardState (
             modifierShift = remember { mutableStateOf(false) },
@@ -109,29 +112,32 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
         )
 
         val keyboardOptions = mapOf(
-            "Default Keyboard" to KeyboardData (
+            "Default Keyboard (rings)" to KeyboardData (
                 finishedConstruction = remember { mutableStateOf(true) },
-                alphaPage = remember { fillDefaultKeyInfos(keysPageAlpha) },
-                numericPage = remember { fillDefaultKeyInfos(keysPageNumeric) }
+                alphaPage = remember { fillKeyInfos(keysPageAlpha, concentricPositions) },
+                numericPage = remember { fillKeyInfos(keysPageNumeric, concentricPositions) }
             ),
+
+            "Regular Keyboard" to KeyboardData (
+                finishedConstruction = remember { mutableStateOf(true) },
+                alphaPage = remember { fillKeyInfos(keysPageAlpha, regularPositions) },
+                numericPage = remember { fillKeyInfos(keysPageNumeric, regularPositions) }
+            ),
+
             "Custom Keyboard 1" to KeyboardData (
                 finishedConstruction = remember { mutableStateOf(false) },
                 alphaPage = remember { mutableStateListOf<KeyInfo>() },
                 numericPage = remember { mutableStateListOf<KeyInfo>() }
             ),
+
             "Custom Keyboard 2" to KeyboardData (
-                finishedConstruction = remember { mutableStateOf(false) },
-                alphaPage = remember { mutableStateListOf<KeyInfo>() },
-                numericPage = remember { mutableStateListOf<KeyInfo>() }
-            ),
-            "Custom Keyboard 3" to KeyboardData (
                 finishedConstruction = remember { mutableStateOf(false) },
                 alphaPage = remember { mutableStateListOf<KeyInfo>() },
                 numericPage = remember { mutableStateListOf<KeyInfo>() }
             ),
         )
 
-        val selectedKeyboard = remember { mutableStateOf("Default Keyboard") }
+        val selectedKeyboard = remember { mutableStateOf("Default Keyboard (rings)") }
 
         if (selectedKeyboard.value in keyboardOptions) {
             val keyboardData = keyboardOptions.getValue(selectedKeyboard.value)
