@@ -120,7 +120,7 @@ fun generateConcentric(
 
         resultingPoints.addAll(points)
         if (reflect) {
-            for (p in points) {
+            for (p in points.asReversed()) {
                 if (p.x < mid - 0.001) {
                     resultingPoints.add(Vec2(mid + (mid - p.x), p.y))
                 }
