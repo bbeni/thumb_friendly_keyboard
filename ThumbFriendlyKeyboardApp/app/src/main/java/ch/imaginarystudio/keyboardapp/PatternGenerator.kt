@@ -31,8 +31,8 @@ fun regularGrid1(aspectRatio: Float): List<Vec2> {
         positions.add(getPos(i, 10, 2.5f * rowHeight, 0.04f, 0.04f))
     }
 
-    for (i in 0..8) {
-        positions.add(getPos(i, 5, 3.5f* rowHeight, 0.14f, 0.14f))
+    for (i in 0..5) {
+        positions.add(getPos(i, 6, 3.5f* rowHeight, 0.14f, 0.14f))
     }
 
     return positions
@@ -42,19 +42,31 @@ fun regularGrid1(aspectRatio: Float): List<Vec2> {
 // The values to generate this are empirically found
 // To see how they have been generated see ipython notebook concentric_keys.ipynb in ideas_and_notes
 fun concentricGrid1(aspectRatio: Float, border: Double = 0.05): List<Vec2> {
-
     val thumbPosition = Vec2(-0.57, 0.06)
     val radii = listOf(1.268, 1.15, 1.031, 0.9, 0.76)
     val numbers = listOf(1, 3, 5, 5, 4)
+    return generateConcentricWithAspect(radii, numbers, thumbPosition, aspectRatio, border)
+}
+
+fun concentricGrid2(aspectRatio: Float, border: Double = 0.05): List<Vec2> {
+    val thumbPosition = Vec2(-0.57, 0.06)
+    val radii = listOf(1.268, 1.15, 1.031, 0.9, 0.76)
+    val numbers = listOf(2, 4, 7, 6, 4)
+    return generateConcentricWithAspect(radii, numbers, thumbPosition, aspectRatio, border)
+}
+
+
+
+fun generateConcentricWithAspect(radii:List<Double>, numbers:List<Int>, thumbPosition:Vec2, aspectRatio: Float, border: Double = 0.05): List<Vec2> {
 
     val height = 1.0 / aspectRatio
     val upperLeft = Vec2(border, height - border)
     val lowerRight = Vec2(1.0 - border, border)
 
-    return generateConcentric(radii, numbers, thumbPosition, true, upperLeft, lowerRight).map {
+    var positions = generateConcentric(radii, numbers, thumbPosition, true, upperLeft, lowerRight)
+    return positions.map {
         // flip y axis for printing
         it.y = height - it.y
-        // shrink it
         it
     }
 }

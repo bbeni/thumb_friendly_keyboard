@@ -14,8 +14,9 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.nativeCanvas
 
-
-// TODO: this is not so efficient..
+// convert the Vec2 list to a list of offset in pixel_space using width
+// shrinkPixels is used to inset the corners inwards (when positive value given)
+// TODO: improve efficiency.. this function is not very efficient and readable..
 fun offsetsForDrawing(corners: List<Vec2>, width: Float, shrinkPixels: Float = 0f) : List<Offset> {
 
     val offsets = if (shrinkPixels == 0f) {
@@ -23,6 +24,7 @@ fun offsetsForDrawing(corners: List<Vec2>, width: Float, shrinkPixels: Float = 0
                 c -> positionToOffset(c, width)
         }.toMutableList()
     } else {
+        // shrink the corners inwards
         val shrinkPixelsF = shrinkPixels / width
         corners.mapIndexed { i, corner ->
             val iPrev = (i - 1 + corners.count()) % corners.count()
@@ -32,6 +34,7 @@ fun offsetsForDrawing(corners: List<Vec2>, width: Float, shrinkPixels: Float = 0
             val xToPrev = (corners[iPrev] - corner).normalized()
             val xToNext = (corners[iNext] - corner).normalized()
 
+            // rotate by 90 degrees
             val perpendicularPrevious = Vec2(-xToPrev.y, xToPrev.x)
             val perpendicularNext = Vec2(xToNext.y, -xToNext.x)
 

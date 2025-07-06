@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,8 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 
+
 @Composable
-fun SelectKeyboardGroup(selectedOption: MutableState<String>, options: Map<String, KeyboardData>) {
+fun SelectKeyboardGroup(keyboardState: KeyboardState, selectedOption: MutableState<String>, options: Map<String, KeyboardData>) {
 
     val onSelectionChange = { text: String ->
         selectedOption.value = text
@@ -32,7 +35,9 @@ fun SelectKeyboardGroup(selectedOption: MutableState<String>, options: Map<Strin
     Column(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
     ) {
         options.forEach {
             val text = it.key
@@ -40,35 +45,54 @@ fun SelectKeyboardGroup(selectedOption: MutableState<String>, options: Map<Strin
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
-                        all = 6.dp,
+                        all = 3.dp,
                     ),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = if (it.value.finishedConstruction.value) {"ready!"} else {"not rdy"},
-                    style = MaterialTheme.typography.bodyMedium.merge(),
-                    color = Color.White,
-                    modifier = Modifier
-                        .clip(
-                            shape = RoundedCornerShape(
-                                size = 12.dp,
-                            ),
-                        )
-                        .clickable {
-                            onSelectionChange(text)
-                        }
-                        .background(
-                            if (it.value.finishedConstruction.value) {
-                                Color.Green
-                            } else {
-                                Color.Red
+                Row() {
+                    Text(
+                        text = "Move Keys",
+                        style = MaterialTheme.typography.bodyMedium.merge(),
+                        color = Color.White,
+                        modifier = Modifier
+                            .clip(
+                                shape = RoundedCornerShape(
+                                    size = 12.dp
+                                )
+                            ).clickable {
+                                onSelectionChange(text)
+                                keyboardState.mode.value = Mode.MOVE_MODIFYING
+                            }.background(
+                                if (text == selectedOption.value) {
+                                    Color.DarkGray
+                                } else {
+                                    Color.LightGray
+                                }
+                            )
+                            .padding(6.dp)
+                    )
+                    Text(
+                        text = if (it.value.finishedConstruction.value) {"rdy"} else {"not"},
+                        style = MaterialTheme.typography.bodyMedium.merge(),
+                        color = Color.White,
+                        modifier = Modifier
+                            .clip(
+                                shape = RoundedCornerShape(
+                                    size = 12.dp,
+                                ),
+                            )
+                            .clickable {
+                                onSelectionChange(text)
                             }
-                        )
-                        .padding(
-                            vertical = 8.dp,
-                            horizontal = 10.dp,
-                        ),
-                )
+                            .background(
+                                if (it.value.finishedConstruction.value) {
+                                    Color.Green
+                                } else {
+                                    Color.Red
+                                }
+                            )
+                            .padding(6.dp),
+                    )}
                 Text(
                     text = text,
                     style = MaterialTheme.typography.bodyMedium.merge(),
@@ -89,10 +113,7 @@ fun SelectKeyboardGroup(selectedOption: MutableState<String>, options: Map<Strin
                                 Color.LightGray
                             }
                         )
-                        .padding(
-                            vertical = 8.dp,
-                            horizontal = 10.dp,
-                        ),
+                        .padding(6.dp),
                 )
             }
         }
@@ -117,7 +138,7 @@ fun MenuView(selected: MutableState<String> , options: Map<String, KeyboardData>
             Button(
                 modifier = Modifier.padding(10.dp),
                 onClick = {
-                    state.showSettings.value = false
+                    state.mode.value = Mode.KEYBOARD
                 }
             ) {
                     Text(text = "back")
@@ -141,7 +162,7 @@ fun MenuView(selected: MutableState<String> , options: Map<String, KeyboardData>
                 .padding(10.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            SelectKeyboardGroup(selectedOption = selected, options = options)
+            SelectKeyboardGroup(state, selected, options)
         }
     }
 }

@@ -74,6 +74,29 @@ class KeyboardIMEService : LifecycleInputMethodService(),
 
 }
 
+@Composable
+fun makeKeyboardData(positions: List<Vec2>, aspectRatio: Float): KeyboardData {
+
+    val fillKeyInfos = { keys: List<Key>, positions: List<Vec2> ->
+        val l = mutableStateListOf<KeyInfo>()
+        positions.forEachIndexed { i, pos ->
+            if (i < keys.count()) {
+                addKey(l, pos, keys[i])
+            } else {
+                addKey(l, pos, Key(" "))
+            }
+        }
+        recalculateBoundaries(l, aspectRatio)
+        l
+    }
+
+    return KeyboardData(
+        finishedConstruction = remember { mutableStateOf(true) },
+        alphaPage = remember { fillKeyInfos(keysPageAlpha, positions) },
+        numericPage = remember { fillKeyInfos(keysPageNumeric, positions) },
+    )
+}
+
 class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
     @Composable
     override fun Content() {
@@ -89,48 +112,24 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
         )
 
 
-        val fillKeyInfos = { keys: List<Key>, positions: List<Vec2> ->
-            val l = mutableStateListOf<KeyInfo>()
-            keys.forEachIndexed { i, k ->
-                addKey(l, positions[i], k)
-            }
-            recalculateBoundaries(l, keyboardTheme.aspectRatio)
-            l
-        }
-
         val regularPositions = regularGrid1(keyboardTheme.aspectRatio)
-        val concentricPositions = concentricGrid1(keyboardTheme.aspectRatio)
+        val concentricPositions1 = concentricGrid1(keyboardTheme.aspectRatio)
+        val concentricPositions2 = concentricGrid2(keyboardTheme.aspectRatio)
 
         val keyboardState = KeyboardState (
             modifierShift = remember { mutableStateOf(false) },
             modifierNumeric = remember { mutableStateOf(false) },
-            showSettings = remember { mutableStateOf(false) }
+            mode = remember { mutableStateOf(Mode.KEYBOARD) }
         )
 
+
+        val aspect = keyboardTheme.aspectRatio
+
         val keyboardOptions = mapOf(
-            "Default Keyboard (rings)" to KeyboardData (
-                finishedConstruction = remember { mutableStateOf(true) },
-                alphaPage = remember { fillKeyInfos(keysPageAlpha, concentricPositions) },
-                numericPage = remember { fillKeyInfos(keysPageNumeric, concentricPositions) }
-            ),
-
-            "Regular Keyboard" to KeyboardData (
-                finishedConstruction = remember { mutableStateOf(true) },
-                alphaPage = remember { fillKeyInfos(keysPageAlpha, regularPositions) },
-                numericPage = remember { fillKeyInfos(keysPageNumeric, regularPositions) }
-            ),
-
-            "Custom Keyboard 1" to KeyboardData (
-                finishedConstruction = remember { mutableStateOf(false) },
-                alphaPage = remember { mutableStateListOf<KeyInfo>() },
-                numericPage = remember { mutableStateListOf<KeyInfo>() }
-            ),
-
-            "Custom Keyboard 2" to KeyboardData (
-                finishedConstruction = remember { mutableStateOf(false) },
-                alphaPage = remember { mutableStateListOf<KeyInfo>() },
-                numericPage = remember { mutableStateListOf<KeyInfo>() }
-            ),
+            "Default Keyboard (rings)" to makeKeyboardData(concentricPositions2, aspect),
+            "Default Keyboard 2 (rings)" to  makeKeyboardData(concentricPositions1, aspect),
+            "Regular Keyboard" to makeKeyboardData(regularPositions, aspect),
+            "Custom Keyboard 1" to makeKeyboardData(emptyList(), aspect),
         )
 
         val selectedKeyboard = remember { mutableStateOf("Default Keyboard (rings)") }
@@ -141,11 +140,12 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
             if (!keyboardData.finishedConstruction.value) {
                 KeyboardConstructView(keyboardData, keyboardState, keyboardTheme)
             } else {
-                if (keyboardState.showSettings.value) {
+                if (keyboardState.mode.value == Mode.MENU) {
                     MenuView(selectedKeyboard, keyboardOptions, keyboardData, keyboardState, keyboardTheme)
-                } else {
+                } else if (keyboardState.mode.value == Mode.KEYBOARD) {
                     KeyboardView(keyboardData, keyboardState, keyboardTheme)
-                    //MockKeyboard()
+                } else if (keyboardState.mode.value == Mode.MOVE_MODIFYING) {
+                    KeyboardMoveEditorView(keyboardData, keyboardState, keyboardTheme)
                 }
             }
         }

@@ -5,15 +5,15 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,23 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-
-@Composable
-fun MockKeyboard() {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .height(200.dp)
-            .background(Color.Gray),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(color = Color.Black, text = "This will be the keyboard.. maybe")
-        Button(modifier = Modifier.width(250.dp), onClick = { }) {
-            Text(text = "A B C buttons")
-        }
-    }
-}
 
 data class KeyInfo(
     var position: Vec2,
@@ -145,13 +128,14 @@ fun recalculateBoundaries(keyInfos: SnapshotStateList<KeyInfo>, aspect: Float) {
         }
     }
 }
+
 fun addKey(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2, key: Key) {
     val keyInfo = KeyInfo(position, Polygon(), key)
     keyInfos.add(keyInfo)
 }
 
 
-fun closestKey(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2): Key {
+fun closestKeyIndex(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2): Int {
     var closestIndex = -1
     var closestDist = Float.MAX_VALUE
     for (i in 0 until keyInfos.count()) {
@@ -161,7 +145,11 @@ fun closestKey(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2): Key {
             closestIndex = i
         }
     }
-    return keyInfos[closestIndex].key
+    return closestIndex
+}
+
+fun closestKey(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2): Key {
+    return keyInfos[closestKeyIndex(keyInfos, position)].key
 }
 
 fun handleKey(keyboardState: KeyboardState, key: Key, ic: InputConnection) {
@@ -194,8 +182,7 @@ fun handleKey(keyboardState: KeyboardState, key: Key, ic: InputConnection) {
                 !keyboardState.modifierShift.value
 
             "⁝⁝⁝⁝" -> {
-                // TODO: settings
-                keyboardState.showSettings.value = true
+                keyboardState.mode.value = Mode.MENU
             }
 
             "?123" -> {
@@ -210,6 +197,7 @@ fun handleKey(keyboardState: KeyboardState, key: Key, ic: InputConnection) {
 fun offsetToPosition(offset: Offset, width: Int): Vec2 {
     return Vec2( offset.x / width, offset.y / width )
 }
+
 fun positionToOffset(position: Vec2, width: Float): Offset {
     return Offset((position.x * width).toFloat(), (position.y * width).toFloat())
 }
@@ -245,6 +233,75 @@ fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: Keyboa
     }
 }
 
+
+@Composable
+fun KeyboardMoveEditorView(keyboardData: KeyboardData, state: KeyboardState, theme: KeyboardTheme) {
+
+    val ctx = LocalContext.current
+
+    var draggedKeyIndex = -1
+    var hoverIndex = -1
+
+    Column {
+        Row(
+            modifier = Modifier
+                .background(Color.Yellow)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Button(onClick = {
+                state.mode.value = Mode.KEYBOARD
+            }) {
+                Text(text = "Test Keyboard")
+            }
+        }
+        Canvas(
+            modifier = Modifier
+                .aspectRatio(theme.aspectRatio)
+                .padding(0.dp)
+                .fillMaxWidth()
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragStart = { offset ->
+                            val pos = offsetToPosition(offset, size.width)
+                            draggedKeyIndex = closestKeyIndex(keyboardData.alphaPage, pos)
+                            hoverIndex = draggedKeyIndex
+                        },
+                        onDragEnd = {
+
+                            // handle swap
+                            if (hoverIndex != -1 && draggedKeyIndex != -1) {
+                                val a = keyboardData.alphaPage[draggedKeyIndex]
+                                val b = keyboardData.alphaPage[hoverIndex]
+                                a.key = b.key.also{b.key = a.key}
+                            }
+
+                            draggedKeyIndex = -1
+                            hoverIndex = -1
+
+                        },
+                        onDragCancel = {
+                            draggedKeyIndex = -1
+                            hoverIndex = -1
+                        },
+                    ) { change, offset ->
+                        if (draggedKeyIndex != -1) {
+                            val pos = offsetToPosition(offset, size.width)
+                            val nextHoverIndex = closestKeyIndex(keyboardData.alphaPage, pos)
+
+                            // we change hover position
+                            if (draggedKeyIndex != nextHoverIndex) {
+                                hoverIndex = nextHoverIndex
+                            }
+                        }
+                    }
+                }
+        ) {
+            drawKeyboard(keyboardData, state, theme)
+        }
+    }
+}
+
 @Composable
 fun KeyboardConstructView(keyboardData: KeyboardData, keyboardState: KeyboardState, theme: KeyboardTheme) {
 
@@ -264,16 +321,14 @@ fun KeyboardConstructView(keyboardData: KeyboardData, keyboardState: KeyboardSta
                 .padding(0.dp)
                 .fillMaxWidth()
                 .background(
-                    color = Color.Red
+                    color = Color.Yellow
                 )
         ) {
-
             if (pageSelection.value == 0) {
-                Text(text = "Constructing the page 1/2. Next Key drop: \"" + keysPageAlpha[curSelection.value].code + "\" (${curSelection.value + 1}/${keysPageAlpha.count()})")
+                Text(text = "Constructing page 1/2. Next Key drop: \"${keysPageAlpha[curSelection.value].code}\" (${curSelection.value + 1}/${keysPageAlpha.count()})")
             } else {
-                Text(text = "Constructing the page 2/2. Next Key drop: \"" + keysPageNumeric[curSelection.value].code + "\" (${curSelection.value + 1}/${keysPageNumeric.count()})")
+                Text(text = "Constructing page 2/2. Next Key drop: \"${keysPageNumeric[curSelection.value].code}\" (${curSelection.value + 1}/${keysPageNumeric.count()})")
             }
-
         }
         Canvas(
             modifier = Modifier

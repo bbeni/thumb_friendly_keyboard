@@ -11,10 +11,14 @@ class KeyboardData(
     val numericPage: SnapshotStateList<KeyInfo>,
 )
 
+enum class Mode {
+    KEYBOARD, MENU, CONSTRUCTION, MOVE_MODIFYING
+}
+
 class KeyboardState(
     val modifierShift: MutableState<Boolean>,
     val modifierNumeric: MutableState<Boolean>,
-    val showSettings: MutableState<Boolean>,
+    val mode: MutableState<Mode>,
 )
 
 class KeyboardTheme(

@@ -1,10 +1,7 @@
 package ch.imaginarystudio.keyboardapp
 
-import android.util.Log
-import ch.imaginarystudio.keyboardapp.itertools.Combinations.combinations
 import kotlin.math.abs
 import kotlin.math.absoluteValue
-import kotlin.math.atan
 import kotlin.math.sqrt
 
 object Settings{
@@ -112,97 +109,4 @@ fun constructPerpendicularBisector(a: Vec2, b: Vec2): Line {
     // 90 deg rotation
     val c = Vec2(-d.y, d.x)
     return Line(c, a + d * 0.5)
-}
-
-@OptIn(ExperimentalStdlibApi::class)
-private fun cutPoints(polygon: Polygon, line:Line): Pair<MutableList<Vec2>, MutableList<Int>>? {
-    val points = mutableListOf<Vec2>()
-    val indices = mutableListOf<Int>()
-    for (i in 0..< polygon.corners.size) {
-        val c1 = polygon.corners[i]
-        val c2 = polygon.corners[(i+1) % polygon.corners.size]
-        val edge = Segment(c2, c1)
-        if (line.intersectsSegment(edge)) {
-            val ip = line.intersectionPoint(edge.toLine())
-
-            if (ip == null) {
-                return null
-            }
-            points.add(ip)
-            indices.add(i)
-        }
-
-    }
-    Log.d("TFKeyboard", points.toString())
-    assert((points.size == 2) or (points.size == 0))
-    if (points.size == 0)
-        return null
-    return Pair(points, indices)
-}
-
-fun constructPolygonAroundPoint(
-    v0:Vec2,
-    vListSupport:List<Vec2>,
-    maxNearestNeighboursConsidered:Int? = null
-): Polygon {
-    val perpendiculars : MutableList<Line> = vListSupport
-        .asSequence()
-        .filter { it != v0 }
-        .sortedBy { (it-v0).norm() }
-        .take(maxNearestNeighboursConsidered ?: vListSupport.size)
-        .sortedBy { atan(((it.x-v0.x)/(it.y-v0.y))) }
-        .map { constructPerpendicularBisector(v0, it) }
-        .toMutableList()
-
-    // construct triangle
-    var polygon : Polygon? = null
-    outer@ for (c in perpendiculars.combinations(3))
-    {
-        val proposedPolygon = Polygon()
-        val threePerpendiculars = c.toMutableList()
-
-        threePerpendiculars.add(threePerpendiculars[0])
-        for (pair in threePerpendiculars.zipWithNext()) {
-            val (pa, pb) = pair
-            val intersection : Vec2? = pa.intersectionPoint(pb)
-            if (intersection == null) continue@outer
-            proposedPolygon.addCorner(intersection)
-        }
-        val ca = proposedPolygon.corners[0]
-        val cb = proposedPolygon.corners[1]
-        val cc = proposedPolygon.corners[2]
-        if (!(Segment(ca, cb).toLine().isPointLeft(v0)) or
-            !(Segment(cb, cc).toLine().isPointLeft(v0)) or
-            !(Segment(cc, ca).toLine().isPointLeft(v0))) {
-            continue@outer
-        }
-        perpendiculars.remove(threePerpendiculars[0])
-        perpendiculars.remove(threePerpendiculars[0])
-        perpendiculars.remove(threePerpendiculars[0])
-        polygon = proposedPolygon
-        break
-    }
-
-    if (polygon == null) throw RuntimeException("Didn't find triangle.. ")
-
-
-    for (perpendicular in perpendiculars) {
-        val x = cutPoints(polygon, perpendicular) ?: continue
-        val (cps, indices) = x
-        val line = Segment(cps[0], cps[1]).toLine()
-
-        // check which part of the polygon needs to be cut
-        // then add new corners
-        if (!line.isPointLeft(v0)) {
-            polygon.corners.subList(indices[0]+1, indices[1]+1).clear()
-            polygon.corners.add(indices[0]+1,cps[0])
-            polygon.corners.add(indices[0]+2,cps[1])
-        } else {
-            polygon.corners.subList(indices[1] + 1, polygon.corners.size).clear()
-            polygon.corners.subList(0, indices[0]+1).clear()
-            polygon.corners.add(0, cps[0])
-            polygon.corners.add(cps[1])
-        }
-    }
-    return polygon
 }
