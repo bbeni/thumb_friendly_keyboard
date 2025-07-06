@@ -259,9 +259,9 @@ fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: Keyboa
                         val ic = (ctx as KeyboardIMEService).currentInputConnection
 
                         val repeatJob = scope.launch {
-                            delay(450)
+                            delay(500)
                             while (true) {
-                                delay(40)
+                                delay(20)
                                 commitIfCharOrBackspace(state, key, ic)
                             }
                         }

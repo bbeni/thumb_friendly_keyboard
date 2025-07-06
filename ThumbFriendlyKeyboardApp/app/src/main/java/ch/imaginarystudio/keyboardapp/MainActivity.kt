@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -23,7 +24,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -82,10 +82,9 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MyText(text: String) {
+fun MyText(text: String, modifier: Modifier = Modifier.padding(25.dp, 2.dp)) {
     Text(
-        modifier = Modifier
-            .padding(25.dp, 2.dp),
+        modifier = modifier,
         text = text,
     )
 }
@@ -110,13 +109,14 @@ fun MainView() {
             EnableIMEButton(stringResource(id=R.string.enable_ime_steps))
             SelectIMEButton(stringResource(id=R.string.select_ime_steps))
         }
-        TestInputView()
         MyText(text = stringResource(id = R.string.click_settings_steps))
+        TestInputView()
+        MyText(modifier = Modifier.padding(25.dp, 420.dp),
+            text = stringResource(id = R.string.lore))
     }
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TestInputView() {
 
@@ -126,11 +126,12 @@ fun TestInputView() {
 
     OutlinedTextField(
         value = text,
-        onValueChange = {x -> text=x},
+        onValueChange ={ x -> text=x },
         label = { Text(text = stringResource(id = R.string.hint_to_test_keyboard))},
         modifier = Modifier
             .fillMaxSize()
-            .padding(10.dp),
+            .padding(10.dp)
+            .imePadding(),
         singleLine = false,
         maxLines = 4,
     )
