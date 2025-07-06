@@ -64,6 +64,7 @@ import splitties.systemservices.inputMethodManager
         -[x] App crash on select other IME
         -[x] Handle return/newline better
         -[x] Handle long press
+        -[ ] Crash in editing keyboard view
  */
 
 class MainActivity : ComponentActivity() {

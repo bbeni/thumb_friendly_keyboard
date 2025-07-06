@@ -68,7 +68,7 @@ fun DrawScope.drawPolygon(polygon: Polygon, strokeWidth: Float, color: Color = C
     )
 }
 
-fun DrawScope.drawKeyField(key: KeyInfo, shrinkPixels: Float, bgColor: Color = Color.DarkGray, borderColor: Color = Color.Black) {
+fun DrawScope.drawKeyField(key: KeyInfo, shrinkPixels: Float, theme: KeyboardTheme) {
 
     val corners = offsetsForDrawing(key.boundary.corners, size.width, shrinkPixels)
 
@@ -78,11 +78,11 @@ fun DrawScope.drawKeyField(key: KeyInfo, shrinkPixels: Float, bgColor: Color = C
     path.fillType = PathFillType.EvenOdd
     for (c in corners) { path.lineTo(c.x, c.y) }
     path.close()
-    drawPath(path = path, color = bgColor)
+    drawPath(path = path, color = theme.keyColor)
 
     drawPoints(points = corners,
         PointMode.Polygon,
-        brush = SolidColor(borderColor),
+        brush = SolidColor(theme.keyBorderColor),
         cap = StrokeCap.Round,
         strokeWidth = 2.0f,
     )
@@ -92,7 +92,7 @@ fun DrawScope.drawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardSt
 
     // draw background
     drawRoundRect(
-        brush = Brush.linearGradient(listOf(Color.Gray, Color.DarkGray)),
+        brush = Brush.linearGradient(listOf(theme.bgColor, theme.bgColor)),
         cornerRadius = CornerRadius(4f, 4f),
         style = Fill
     )
@@ -106,7 +106,7 @@ fun DrawScope.drawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardSt
     for (keyInfo in keyInfos) {
         val p = positionToOffset(keyInfo.position, size.width)
 
-        drawKeyField(keyInfo, theme.shrinkKeyDp.toPx(), bgColor = Color.Gray)
+        drawKeyField(keyInfo, theme.shrinkKeyDp.toPx(), theme)
         var key = keyInfo.key.code
         if (keyboardState.modifierShift.value) {
             key = key.uppercase()

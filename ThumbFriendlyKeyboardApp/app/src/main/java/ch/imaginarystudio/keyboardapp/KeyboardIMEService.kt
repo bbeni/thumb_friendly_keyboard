@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.AbstractComposeView
 import androidx.compose.ui.unit.dp
@@ -27,6 +26,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import ch.imaginarystudio.keyboardapp.ui.theme.DarkColorScheme
 
 
 class KeyboardIMEService : LifecycleInputMethodService(),
@@ -102,13 +102,16 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
     override fun Content() {
 
         val keyboardTheme = KeyboardTheme (
-            shrinkKeyDp = 1.dp,
+            shrinkKeyDp = 1.2.dp,
             keyPaint = Paint().apply {
                 textAlign = Paint.Align.CENTER
                 textSize = 64f
-                color = Color(198, 199, 200).toArgb()
-                setShadowLayer(0.8f, 2.0f, 2.0f, Color.DarkGray.toArgb())
-            }
+                color = DarkColorScheme.secondary.toArgb()
+                setShadowLayer(0.8f, 3.0f, 2.0f, DarkColorScheme.background.toArgb())
+            },
+            keyColor = DarkColorScheme.tertiary,
+            keyBorderColor = DarkColorScheme.primary,
+            bgColor = DarkColorScheme.background,
         )
 
 
@@ -126,13 +129,13 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
         val aspect = keyboardTheme.aspectRatio
 
         val keyboardOptions = mapOf(
+            "Regular Keyboard" to makeKeyboardData(regularPositions, aspect),
             "Default Keyboard (rings)" to makeKeyboardData(concentricPositions2, aspect),
             "Default Keyboard 2 (rings)" to  makeKeyboardData(concentricPositions1, aspect),
-            "Regular Keyboard" to makeKeyboardData(regularPositions, aspect),
             "Custom Keyboard 1" to makeKeyboardData(emptyList(), aspect),
         )
 
-        val selectedKeyboard = remember { mutableStateOf("Default Keyboard (rings)") }
+        val selectedKeyboard = remember { mutableStateOf("Regular Keyboard") }
 
         if (selectedKeyboard.value in keyboardOptions) {
             val keyboardData = keyboardOptions.getValue(selectedKeyboard.value)

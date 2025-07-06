@@ -24,16 +24,21 @@ fun regularGrid1(aspectRatio: Float): List<Vec2> {
     }
 
     for (i in 0..8) {
-        positions.add(getPos(i, 9, 1.5f * rowHeight, 0.10f, 0.10f))
+        positions.add(getPos(i, 9, 1.45f * rowHeight, 0.10f, 0.10f))
     }
 
     for (i in 0..9) {
-        positions.add(getPos(i, 10, 2.5f * rowHeight, 0.04f, 0.04f))
+        positions.add(getPos(i, 10, 2.4f * rowHeight, 0.05f, 0.05f))
     }
 
     for (i in 0..5) {
         positions.add(getPos(i, 6, 3.5f* rowHeight, 0.14f, 0.14f))
     }
+
+    for (i in 0..6) {
+        positions.add(getPos(i, 7, 4.5f* rowHeight, 0.14f, 0.14f))
+    }
+
 
     return positions
 }
