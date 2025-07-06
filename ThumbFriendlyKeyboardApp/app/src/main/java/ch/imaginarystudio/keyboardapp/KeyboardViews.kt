@@ -5,6 +5,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.GestureCancellationException
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +29,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 data class KeyInfo(
     var position: Vec2,
@@ -38,14 +42,15 @@ data class KeyInfo(
     // from this to the other keyInfo
 
     // we can do an algorithm like this, as we know we will only get convex polygons
-    // if we cut away slices from any convex staring polygon (here rectangle)
+    // if we cut away slices from any convex starting polygon (here we start from a
+    // rectangle)
     fun cutAway(other: KeyInfo) {
         val centerLine = constructPerpendicularBisector(position, other.position)
 
         // store both polygons separated by center line
         // if we have a cut point the two cut points get added to both, so we have two adjacent new polygons
         // if we don't hit, we will always add to the first one (pointsLeft)
-        // TODO: do not use dynamic list as this might be very inefficient
+        // TODO: do not use dynamic list as this might be very inefficient, we could use a static array?
         val pointsLeft = mutableListOf<Vec2>()
         val pointsRight = mutableListOf<Vec2>()
 
@@ -135,6 +140,9 @@ fun addKey(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2, key: Key) {
 }
 
 
+// this function is used to detect key press events by just finding the closest
+// postition of a key
+// euclidean metric can be used as we the key geometry is constructed that way!
 fun closestKeyIndex(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2): Int {
     var closestIndex = -1
     var closestDist = Float.MAX_VALUE
@@ -152,55 +160,57 @@ fun closestKey(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2): Key {
     return keyInfos[closestKeyIndex(keyInfos, position)].key
 }
 
-fun handleKey(keyboardState: KeyboardState, key: Key, ic: InputConnection, ei: EditorInfo) {
-
+fun commitIfCharOrBackspace(keyboardState: KeyboardState, key: Key, ic: InputConnection): Boolean {
     if (!key.isControlChar) {
         var str = key.code
-
         if (keyboardState.modifierShift.value) {
             str = str.uppercase()
             keyboardState.modifierShift.value = false
         }
-
         ic.commitText(str, str.length)
-    } else {
-        when (key.code) {
-            "↩" -> {
-                val requested_action = ei.imeOptions and EditorInfo.IME_MASK_ACTION
-                val flags_no_action = EditorInfo.IME_FLAG_NO_ENTER_ACTION or
-                        EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE or
-                        EditorInfo.TYPE_TEXT_FLAG_IME_MULTI_LINE
+        return true
+    }
 
-                val should_send_newline = ((ei.imeOptions and flags_no_action) != 0 ) ||
-                        requested_action == EditorInfo.IME_ACTION_NONE
+    if (key.code == "⇐") {
+        if (TextUtils.isEmpty(ic.getSelectedText(0))) ic.deleteSurroundingText(1, 0)
+        else ic.commitText("", 0)
+        return true
+    }
 
-                if (should_send_newline) {
-                    ic.commitText("\n", 1)
-                } else {
-                    ic.performEditorAction(requested_action)
-                    //ic.performEditorAction(EditorInfo.IME_ACTION_GO)
-                    //ic.performEditorAction(EditorInfo.IME_ACTION_DONE)
-                }
+    return false
+}
+
+fun handleKey(keyboardState: KeyboardState, key: Key, ic: InputConnection, ei: EditorInfo) {
+
+    if (commitIfCharOrBackspace(keyboardState, key, ic,)) return
+
+    when (key.code) {
+        "↩" -> {
+            val requested_action = ei.imeOptions and EditorInfo.IME_MASK_ACTION
+            val flags_no_action = EditorInfo.IME_FLAG_NO_ENTER_ACTION or
+                    EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE or
+                    EditorInfo.TYPE_TEXT_FLAG_IME_MULTI_LINE
+
+            val should_send_newline = ((ei.imeOptions and flags_no_action) != 0 ) ||
+                    requested_action == EditorInfo.IME_ACTION_NONE
+
+            if (should_send_newline) {
+                ic.commitText("\n", 1)
+            } else {
+                ic.performEditorAction(requested_action)
             }
+        }
 
-            "⇐" -> {
-                if (TextUtils.isEmpty(ic.getSelectedText(0)))
-                    ic.deleteSurroundingText(1, 0)
-                else
-                    ic.commitText("", 0)
-            }
+        "⇧" -> keyboardState.modifierShift.value =
+            !keyboardState.modifierShift.value
 
-            "⇧" -> keyboardState.modifierShift.value =
-                !keyboardState.modifierShift.value
+        "⁝⁝⁝⁝" -> {
+            keyboardState.mode.value = Mode.MENU
+        }
 
-            "⁝⁝⁝⁝" -> {
-                keyboardState.mode.value = Mode.MENU
-            }
-
-            "?123" -> {
-                keyboardState.modifierNumeric.value =
-                    !keyboardState.modifierNumeric.value
-            }
+        "?123" -> {
+            keyboardState.modifierNumeric.value =
+                !keyboardState.modifierNumeric.value
         }
     }
 }
@@ -218,6 +228,7 @@ fun positionToOffset(position: Vec2, width: Float): Offset {
 fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: KeyboardTheme) {
 
     val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     Canvas(
         modifier = Modifier
@@ -225,21 +236,47 @@ fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: Keyboa
             .padding(0.dp)
             .fillMaxWidth()
             .pointerInput(Unit) {
-                detectTapGestures { offset ->
-                    val tapPos = offsetToPosition(offset, size.width)
+                detectTapGestures(
+                    onTap = { offset ->
+                        // select page and find pressed key
+                        val tapPos = offsetToPosition(offset, size.width)
+                        var page = keyboardData.alphaPage
+                        if (state.modifierNumeric.value) page = keyboardData.numericPage
+                        val key = closestKey(page, tapPos)
 
-                    // select page and find pressed key
-                    var page = keyboardData.alphaPage
-                    if (state.modifierNumeric.value) {
-                        page = keyboardData.numericPage
+                        val ic = (ctx as KeyboardIMEService).currentInputConnection
+                        val ei = (ctx as KeyboardIMEService).currentInputEditorInfo
+
+                        handleKey(state, key, ic, ei)
+                    },
+                    onPress = { offset ->
+                        // select page and find pressed key
+                        val tapPos = offsetToPosition(offset, size.width)
+                        var page = keyboardData.alphaPage
+                        if (state.modifierNumeric.value) { page = keyboardData.numericPage }
+                        val key = closestKey(page, tapPos)
+
+                        val ic = (ctx as KeyboardIMEService).currentInputConnection
+
+                        val repeatJob = scope.launch {
+                            delay(450)
+                            while (true) {
+                                delay(40)
+                                commitIfCharOrBackspace(state, key, ic)
+                            }
+                        }
+
+                        val releasedNormally = try {
+                            awaitRelease()    // returns when finger lifts
+                            true
+                        } catch (_: GestureCancellationException) {
+                            false
+                        }
+
+                        repeatJob.cancel()
+
                     }
-
-                    val key = closestKey(page, tapPos)
-                    val ic = (ctx as KeyboardIMEService).currentInputConnection
-                    val ei = (ctx as KeyboardIMEService).currentInputEditorInfo
-
-                    handleKey(state, key, ic, ei)
-                }
+                )
             }
     ) {
         drawKeyboard(keyboardData, state, theme)
@@ -286,7 +323,7 @@ fun KeyboardMoveEditorView(keyboardData: KeyboardData, state: KeyboardState, the
                             if (hoverIndex != -1 && draggedKeyIndex != -1) {
                                 val a = keyboardData.alphaPage[draggedKeyIndex]
                                 val b = keyboardData.alphaPage[hoverIndex]
-                                a.key = b.key.also{b.key = a.key}
+                                a.key = b.key.also { b.key = a.key }
                             }
 
                             draggedKeyIndex = -1
