@@ -152,7 +152,8 @@ fun closestKey(keyInfos: SnapshotStateList<KeyInfo>, position: Vec2): Key {
     return keyInfos[closestKeyIndex(keyInfos, position)].key
 }
 
-fun handleKey(keyboardState: KeyboardState, key: Key, ic: InputConnection) {
+fun handleKey(keyboardState: KeyboardState, key: Key, ic: InputConnection, ei: EditorInfo) {
+
     if (!key.isControlChar) {
         var str = key.code
 
@@ -165,10 +166,21 @@ fun handleKey(keyboardState: KeyboardState, key: Key, ic: InputConnection) {
     } else {
         when (key.code) {
             "↩" -> {
-                // TODO: handle closing and reopening of window
-                ic.performEditorAction(EditorInfo.IME_ACTION_GO)
-                //ic.commitText("\n", 1)
-                ic.performEditorAction(EditorInfo.IME_ACTION_DONE)
+                val requested_action = ei.imeOptions and EditorInfo.IME_MASK_ACTION
+                val flags_no_action = EditorInfo.IME_FLAG_NO_ENTER_ACTION or
+                        EditorInfo.TYPE_TEXT_FLAG_MULTI_LINE or
+                        EditorInfo.TYPE_TEXT_FLAG_IME_MULTI_LINE
+
+                val should_send_newline = ((ei.imeOptions and flags_no_action) != 0 ) ||
+                        requested_action == EditorInfo.IME_ACTION_NONE
+
+                if (should_send_newline) {
+                    ic.commitText("\n", 1)
+                } else {
+                    ic.performEditorAction(requested_action)
+                    //ic.performEditorAction(EditorInfo.IME_ACTION_GO)
+                    //ic.performEditorAction(EditorInfo.IME_ACTION_DONE)
+                }
             }
 
             "⇐" -> {
@@ -224,8 +236,9 @@ fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: Keyboa
 
                     val key = closestKey(page, tapPos)
                     val ic = (ctx as KeyboardIMEService).currentInputConnection
+                    val ei = (ctx as KeyboardIMEService).currentInputEditorInfo
 
-                    handleKey(state, key, ic)
+                    handleKey(state, key, ic, ei)
                 }
             }
     ) {

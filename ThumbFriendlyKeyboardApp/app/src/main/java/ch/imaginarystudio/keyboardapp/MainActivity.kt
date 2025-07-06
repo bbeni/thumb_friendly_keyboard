@@ -62,7 +62,7 @@ import splitties.systemservices.inputMethodManager
     Bugs:
         -[ ] Keyboard crash on landscape
         -[x] App crash on select other IME
-        -[ ] Handle return/newline better
+        -[x] Handle return/newline better
  */
 
 class MainActivity : ComponentActivity() {
