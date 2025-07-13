@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 
 class KeyboardData(
-    val finishedConstruction: MutableState<Boolean>,
+    var finishedConstruction: MutableState<Boolean>,
     val alphaPage: SnapshotStateList<KeyInfo>,
     val numericPage: SnapshotStateList<KeyInfo>,
 )

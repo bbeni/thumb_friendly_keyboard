@@ -141,7 +141,7 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
             val keyboardData = keyboardOptions.getValue(selectedKeyboard.value)
 
             if (!keyboardData.finishedConstruction.value) {
-                KeyboardConstructView(keyboardData, keyboardState, keyboardTheme)
+                KeyboardConstructView(keyboardData, keyboardState, keyboardTheme, 0.9f)
             } else {
                 if (keyboardState.mode.value == Mode.MENU) {
                     MenuView(selectedKeyboard, keyboardOptions, keyboardData, keyboardState, keyboardTheme)

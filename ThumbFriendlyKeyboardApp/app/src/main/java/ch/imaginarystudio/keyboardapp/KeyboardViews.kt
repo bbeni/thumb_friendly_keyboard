@@ -5,6 +5,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.GestureCancellationException
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -24,8 +26,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -225,17 +229,22 @@ fun positionToOffset(position: Vec2, width: Float): Offset {
 }
 
 @Composable
-fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: KeyboardTheme) {
+fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: KeyboardTheme, disableInput: Boolean=false, scale:Float = 1.0f) {
 
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
+
 
     Canvas(
         modifier = Modifier
             .aspectRatio(theme.aspectRatio)
             .padding(0.dp)
             .fillMaxWidth()
+            .scale(scale)
             .pointerInput(Unit) {
+                if (disableInput) {
+                    return@pointerInput
+                }
                 detectTapGestures(
                     onTap = { offset ->
                         // select page and find pressed key
@@ -253,7 +262,9 @@ fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: Keyboa
                         // select page and find pressed key
                         val tapPos = offsetToPosition(offset, size.width)
                         var page = keyboardData.alphaPage
-                        if (state.modifierNumeric.value) { page = keyboardData.numericPage }
+                        if (state.modifierNumeric.value) {
+                            page = keyboardData.numericPage
+                        }
                         val key = closestKey(page, tapPos)
 
                         val ic = (ctx as KeyboardIMEService).currentInputConnection
@@ -353,72 +364,108 @@ fun KeyboardMoveEditorView(keyboardData: KeyboardData, state: KeyboardState, the
 }
 
 @Composable
-fun KeyboardConstructView(keyboardData: KeyboardData, keyboardState: KeyboardState, theme: KeyboardTheme) {
+fun KeyboardConstructView(
+    keyboardData: KeyboardData,
+    keyboardState: KeyboardState,
+    theme: KeyboardTheme,
+    scale: Float = 1.0f
+) {
 
     val curSelection = remember { mutableStateOf(0) }
     val pageSelection = remember { mutableStateOf(0) }
+    val started = remember { mutableStateOf(false) }
+    val finished = remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .padding(0.dp)
-            .fillMaxWidth(),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
+    if (keyboardData.finishedConstruction.value) {
+        // TODO: make finishedConstruction a remember field
+        finished.value = true
+    }
 
-    ) {
-        Box(
+    if (finished.value) {
+        KeyboardView(keyboardData = keyboardData, state = keyboardState, theme = theme,
+            disableInput = true, scale = 0.9f)
+    } else {
+        Column(
             modifier = Modifier
                 .padding(0.dp)
-                .fillMaxWidth()
-                .background(
-                    color = Color.Yellow
-                )
-        ) {
-            if (pageSelection.value == 0) {
-                Text(text = "Constructing page 1/2. Next Key drop: \"${keysPageAlpha[curSelection.value].code}\" (${curSelection.value + 1}/${keysPageAlpha.count()})")
-            } else {
-                Text(text = "Constructing page 2/2. Next Key drop: \"${keysPageNumeric[curSelection.value].code}\" (${curSelection.value + 1}/${keysPageNumeric.count()})")
-            }
-        }
-        Canvas(
-            modifier = Modifier
-                .aspectRatio(theme.aspectRatio)
-                .padding(0.dp)
-                .fillMaxWidth()
-                .pointerInput(Unit) {
-                    detectTapGestures { offset ->
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
 
-                        val tapPos = offsetToPosition(offset, size.width)
-
-                        var toSelect = keysPageAlpha
-                        var pageSelected = keyboardData.alphaPage
-
-                        if (pageSelection.value == 1) {
-                            toSelect = keysPageNumeric
-                            pageSelected = keyboardData.numericPage
-                        }
-
-                        val key = toSelect[curSelection.value]
-
-                        addKey(pageSelected, tapPos, key)
-                        recalculateBoundaries(pageSelected, theme.aspectRatio)
-                        curSelection.value += 1
-
-                        if (curSelection.value >= toSelect.count()) {
-                            pageSelection.value += 1
-                            keyboardState.modifierNumeric.value = true
-                            curSelection.value = 0
-                        }
-
-                        if (pageSelection.value > 1) {
-                            keyboardState.modifierNumeric.value = false
-                            keyboardData.finishedConstruction.value = true
-                        }
-
-                    }
+            ) {
+            Box(
+                modifier = Modifier
+                    .padding(0.dp)
+                    .fillMaxWidth()
+                    .background(
+                        color = Color.DarkGray
+                    )
+            ) {
+                if (pageSelection.value == 0) {
+                    Text(text = "Constructing page 1/2. Next Key drop: \"${keysPageAlpha[curSelection.value].code}\" (${curSelection.value + 1}/${keysPageAlpha.count()})")
+                } else {
+                    Text(text = "Constructing page 2/2. Next Key drop: \"${keysPageNumeric[curSelection.value].code}\" (${curSelection.value + 1}/${keysPageNumeric.count()})")
                 }
-        ) {
-            drawKeyboard(keyboardData, keyboardState, theme)
+            }
+
+            if (!started.value) {
+                Surface(
+                    onClick = {
+                        started.value = true
+                    },
+                    modifier = Modifier
+                        .aspectRatio(theme.aspectRatio)
+                        .padding(0.dp)
+                        .fillMaxWidth()
+                        .scale(scale),
+                )
+                {
+                    Text(text = "Tap to start placing keys. The Keys will be centered at tap positions!")
+                }
+            } else {
+                Canvas(
+                    modifier = Modifier
+                        .aspectRatio(theme.aspectRatio)
+                        .padding(0.dp)
+                        .fillMaxWidth()
+                        .scale(scale)
+                        .border(1.dp, Color.Green, RectangleShape)
+                        .pointerInput(Unit) {
+                            detectTapGestures { offset ->
+
+                                val tapPos = offsetToPosition(offset, size.width)
+
+                                var toSelect = keysPageAlpha
+                                var pageSelected = keyboardData.alphaPage
+
+                                if (pageSelection.value == 1) {
+                                    toSelect = keysPageNumeric
+                                    pageSelected = keyboardData.numericPage
+                                }
+
+                                val key = toSelect[curSelection.value]
+
+                                addKey(pageSelected, tapPos, key)
+                                recalculateBoundaries(pageSelected, theme.aspectRatio)
+                                curSelection.value += 1
+
+                                if (curSelection.value >= toSelect.count()) {
+                                    // go to second page
+                                    pageSelection.value += 1
+                                    if (keyboardState.modifierNumeric.value == true) {
+                                        keyboardData.finishedConstruction.value = true
+                                        finished.value = true
+                                    }
+                                    keyboardState.modifierNumeric.value = true
+                                    curSelection.value = 0
+                                }
+
+                            }
+                        }
+                ) {
+                    drawKeyboard(keyboardData, keyboardState, theme)
+                }
+            }
         }
     }
 }

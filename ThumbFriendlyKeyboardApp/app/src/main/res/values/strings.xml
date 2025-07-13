@@ -1,10 +1,10 @@
 <resources>
     <string name="app_name">Thumb Friendly Keyboard</string>
     <string name="settings_subtitle">Settings</string>
-    <string name="welcome_hints">Hi! Please go through steps 1 to 4 below</string>
+    <string name="welcome_hints">Almost finished. Click buttons below to activate the keyboard.</string>
     <string name="enable_ime_steps">1. Enable \'Thumb Friendly Keyboard\'</string>
     <string name="select_ime_steps">2. Select \'English (United States) Thumb Friendly Keyboard\'</string>
-    <string name="hint_to_test_keyboard">4. Open keyboard here</string>
-    <string name="click_settings_steps">3. The button \'⁝⁝⁝⁝\' on the default keyboard is to select an other thumb friendly keyboard</string>
+    <string name="hint_to_test_keyboard">Test keyboard here</string>
     <string name="lore">... The muscles of the thumb can be compared to guy-wires supporting a flagpole; tension from these muscular guy-wires must be provided in all directions to maintain stability in the articulated column formed by the bones of the thumb. Because this stability is actively maintained by muscles rather than by articular constraints, most muscles attached to the thumb tend to be active during most thumb motions. - Wikipedia 2025</string>
+    <string name="welcome_select_keyboard">Which keyboard suits you?</string>
 </resources>
