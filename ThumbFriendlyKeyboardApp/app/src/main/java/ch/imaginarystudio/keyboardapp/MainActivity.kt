@@ -36,9 +36,11 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,8 +57,10 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ch.imaginarystudio.keyboardapp.ui.theme.DarkColorScheme
 import ch.imaginarystudio.keyboardapp.ui.theme.KeyboardAppTheme
+import ch.imaginarystudio.keyboardapp.ui.theme.KeyboardColorThemes
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import splitties.systemservices.inputMethodManager
 
 /*
@@ -92,6 +96,42 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
+fun MainView() {
+
+    val themeIndex by LocalContext.current.keyboardPreferencesStore.data.map {
+        it[ACTIVE_THEME_KEY]?:0
+    }.collectAsState(initial = 0)
+
+    Column(
+        modifier = Modifier
+            .padding(0.dp)
+            .verticalScroll(rememberScrollState())
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.Start,
+    ) {
+        TitleView()
+        MyText(text = "")
+        MyText(text = stringResource(id = R.string.welcome_select_theme))
+        ThemeSelection(themeIndex)
+        MyText(text = stringResource(id = R.string.welcome_select_keyboard))
+        KeyboardSelection(themeIndex=themeIndex)
+        MyText(text = stringResource(id = R.string.welcome_hints))
+        Column (
+            modifier = Modifier
+                .padding(5.dp)
+        ) {
+            EnableIMEButton(stringResource(id=R.string.enable_ime_steps))
+            SelectIMEButton(stringResource(id=R.string.select_ime_steps))
+        }
+        TestInputView()
+        MyText(modifier = Modifier.padding(25.dp, 420.dp),
+            text = stringResource(id = R.string.lore))
+    }
+}
+
+
+@Composable
 fun MyText(text: String, modifier: Modifier = Modifier.padding(25.dp, 2.dp)) {
     Text(
         modifier = modifier,
@@ -100,20 +140,19 @@ fun MyText(text: String, modifier: Modifier = Modifier.padding(25.dp, 2.dp)) {
 }
 
 @Composable
-fun KeyboardSelection(modifier: Modifier = Modifier) {
+fun KeyboardSelection(modifier: Modifier = Modifier, themeIndex: Int) {
     // copy-pasta code from KeyboardIMEService
     val keyboardTheme = KeyboardTheme (
         shrinkKeyDp = 1.2.dp,
-        keyPaint = Paint().apply {
-            textAlign = Paint.Align.CENTER
-            textSize = 64f
-            color = DarkColorScheme.secondary.toArgb()
-            setShadowLayer(0.8f, 3.0f, 2.0f, DarkColorScheme.background.toArgb())
-        },
-        keyColor = DarkColorScheme.tertiary,
-        keyBorderColor = DarkColorScheme.primary,
-        bgColor = DarkColorScheme.background,
+        keyPaint = Paint(),
+        colorTheme = KeyboardColorThemes[themeIndex],
     )
+
+    keyboardTheme.keyPaint.apply {
+        textAlign = Paint.Align.CENTER
+        textSize = 64f
+        color = keyboardTheme.colorTheme.keyForeground.toArgb()
+    }
 
     val regularPositions = regularGrid1(keyboardTheme.aspectRatio)
     val concentricPositions1 = concentricGrid1(keyboardTheme.aspectRatio)
@@ -186,33 +225,43 @@ fun KeyboardSelection(modifier: Modifier = Modifier) {
 
 }
 
-@Composable
-fun MainView() {
 
-    Column(
-        modifier = Modifier
-            .padding(0.dp)
-            .verticalScroll(rememberScrollState())
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.Start,
-    ) {
-        TitleView()
-        MyText(text = "")
-        MyText(text = stringResource(id = R.string.welcome_select_keyboard))
-        KeyboardSelection()
-        MyText(text = "")
-        MyText(text = stringResource(id = R.string.welcome_hints))
-        Column (
+@Composable
+fun ThemeSelection(themeIndex: Int) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val index by context.keyboardPreferencesStore.data.map { it[ACTIVE_THEME_KEY]?:0 }.collectAsState(initial = 0)
+
+    Row() {
+        Button(
             modifier = Modifier
-                .padding(5.dp)
-        ) {
-            EnableIMEButton(stringResource(id=R.string.enable_ime_steps))
-            SelectIMEButton(stringResource(id=R.string.select_ime_steps))
+                .padding(10.dp),
+            onClick = {
+                scope.launch {
+                    var next = (index - 1)
+                    if (next < 0) next = KeyboardColorThemes.size-1
+                    preferencesUpdateActiveTheme(context, next)
+                }
+            }) {
+            Text(
+                text = "previous"
+            )
         }
-        TestInputView()
-        MyText(modifier = Modifier.padding(25.dp, 420.dp),
-            text = stringResource(id = R.string.lore))
+
+        Button(
+            modifier = Modifier
+                .padding(10.dp),
+            onClick = {
+                scope.launch {
+                    val next = (index + 1) % KeyboardColorThemes.size
+                    preferencesUpdateActiveTheme(context, next)
+                }
+            }) {
+            Text(
+                text = "next"
+            )
+        }
+
     }
 }
 

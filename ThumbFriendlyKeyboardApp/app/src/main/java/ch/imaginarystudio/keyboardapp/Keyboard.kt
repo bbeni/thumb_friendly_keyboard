@@ -3,8 +3,8 @@ package ch.imaginarystudio.keyboardapp
 import android.graphics.Paint
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
+import ch.imaginarystudio.keyboardapp.ui.theme.KeyboardColorTheme
 
 class KeyboardData(
     var finishedConstruction: MutableState<Boolean>,
@@ -25,10 +25,8 @@ class KeyboardState(
 class KeyboardTheme(
     val aspectRatio: Float = 17f/15,
     val keyPaint: Paint,
-    val keyColor: Color,
-    val bgColor: Color,
+    val colorTheme: KeyboardColorTheme,
     val shrinkKeyDp: Dp,
-    val keyBorderColor: Color
 )
 
 data class Key(var code: String, var isControlChar: Boolean = false)

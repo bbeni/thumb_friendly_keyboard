@@ -26,7 +26,7 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import ch.imaginarystudio.keyboardapp.ui.theme.DarkColorScheme
+import ch.imaginarystudio.keyboardapp.ui.theme.KeyboardColorThemes
 
 
 class KeyboardIMEService : LifecycleInputMethodService(),
@@ -101,19 +101,18 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
     @Composable
     override fun Content() {
 
+
         val keyboardTheme = KeyboardTheme (
             shrinkKeyDp = 1.2.dp,
-            keyPaint = Paint().apply {
-                textAlign = Paint.Align.CENTER
-                textSize = 64f
-                color = DarkColorScheme.secondary.toArgb()
-                setShadowLayer(0.8f, 3.0f, 2.0f, DarkColorScheme.background.toArgb())
-            },
-            keyColor = DarkColorScheme.tertiary,
-            keyBorderColor = DarkColorScheme.primary,
-            bgColor = DarkColorScheme.background,
+            keyPaint = Paint(),
+            colorTheme = KeyboardColorThemes[0],
         )
 
+        keyboardTheme.keyPaint.apply {
+            textAlign = Paint.Align.CENTER
+            textSize = 64f
+            color = keyboardTheme.colorTheme.keyForeground.toArgb()
+        }
 
         val regularPositions = regularGrid1(keyboardTheme.aspectRatio)
         val concentricPositions1 = concentricGrid1(keyboardTheme.aspectRatio)

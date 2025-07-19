@@ -78,11 +78,11 @@ fun DrawScope.drawKeyField(key: KeyInfo, shrinkPixels: Float, theme: KeyboardThe
     path.fillType = PathFillType.EvenOdd
     for (c in corners) { path.lineTo(c.x, c.y) }
     path.close()
-    drawPath(path = path, color = theme.keyColor)
+    drawPath(path = path, color = theme.colorTheme.keyBackground)
 
     drawPoints(points = corners,
         PointMode.Polygon,
-        brush = SolidColor(theme.keyBorderColor),
+        brush = SolidColor(theme.colorTheme.background),
         cap = StrokeCap.Round,
         strokeWidth = 2.0f,
     )
@@ -92,7 +92,7 @@ fun DrawScope.drawKeyboard(keyboardData: KeyboardData, keyboardState: KeyboardSt
 
     // draw background
     drawRoundRect(
-        brush = Brush.linearGradient(listOf(theme.bgColor, theme.bgColor)),
+        theme.colorTheme.background,
         cornerRadius = CornerRadius(4f, 4f),
         style = Fill
     )

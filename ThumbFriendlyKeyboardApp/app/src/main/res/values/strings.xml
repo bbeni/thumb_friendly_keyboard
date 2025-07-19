@@ -7,4 +7,5 @@
     <string name="hint_to_test_keyboard">Test keyboard here</string>
     <string name="lore">... The muscles of the thumb can be compared to guy-wires supporting a flagpole; tension from these muscular guy-wires must be provided in all directions to maintain stability in the articulated column formed by the bones of the thumb. Because this stability is actively maintained by muscles rather than by articular constraints, most muscles attached to the thumb tend to be active during most thumb motions. - Wikipedia 2025</string>
     <string name="welcome_select_keyboard">Which keyboard suits you?</string>
+    <string name="welcome_select_theme">Which theme is the right one?</string>
 </resources>
