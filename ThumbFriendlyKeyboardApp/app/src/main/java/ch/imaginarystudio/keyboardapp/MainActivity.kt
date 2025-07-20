@@ -141,6 +141,10 @@ fun MyText(text: String, modifier: Modifier = Modifier.padding(25.dp, 2.dp)) {
 
 @Composable
 fun KeyboardSelection(modifier: Modifier = Modifier, themeIndex: Int) {
+
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
     // copy-pasta code from KeyboardIMEService
     val keyboardTheme = KeyboardTheme (
         shrinkKeyDp = 1.2.dp,
@@ -174,9 +178,15 @@ fun KeyboardSelection(modifier: Modifier = Modifier, themeIndex: Int) {
         "Custom Keyboard" to makeKeyboardData(emptyList(), aspect),
     )
 
-    keyboardOptions["Custom Keyboard"]?.finishedConstruction = mutableStateOf(false)
+    val selectedKeyboardKey by context.keyboardPreferencesStore.data.map {
+        it[ACTIVE_KEYBOARD_KEY]?: keyboardOptions.keys.first()
+    }.collectAsState(initial = keyboardOptions.keys.first())
 
-    val (selectedKeyboard, onKeyboardSelected) = remember { mutableStateOf(keyboardOptions.keys.first()) }
+    val onKeyboardSelected: (String) -> (Unit) = { newKeyboardKey ->
+        scope.launch { preferencesUpdateActiveKeyboard(context, newKeyboardKey) }
+    }
+
+    keyboardOptions["Custom Keyboard"]?.finishedConstruction = mutableStateOf(false)
 
     Column(modifier.selectableGroup()) {
         keyboardOptions.keys.forEach { text ->
@@ -184,7 +194,7 @@ fun KeyboardSelection(modifier: Modifier = Modifier, themeIndex: Int) {
                 Modifier
                     .fillMaxWidth()
                     .selectable(
-                        selected = (text == selectedKeyboard),
+                        selected = (text == selectedKeyboardKey),
                         onClick = { onKeyboardSelected(text) },
                         role = Role.RadioButton
                     )
@@ -192,7 +202,7 @@ fun KeyboardSelection(modifier: Modifier = Modifier, themeIndex: Int) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 RadioButton(
-                    selected = (text == selectedKeyboard),
+                    selected = (text == selectedKeyboardKey),
                     onClick = null // null recommended for accessibility with screen readers
                 )
                 if (text in keyboardOptions) {
@@ -203,7 +213,7 @@ fun KeyboardSelection(modifier: Modifier = Modifier, themeIndex: Int) {
                             disableInput = true, scale = 0.9f
                         )
                     } else {
-                        if (text == selectedKeyboard) {
+                        if (text == selectedKeyboardKey) {
                             KeyboardConstructView(
                                 keyboardData = keyboardData,
                                 keyboardState = keyboardState,

@@ -8,11 +8,14 @@ import android.view.View
 import android.view.inputmethod.EditorInfo
 import androidx.annotation.CallSuper
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.AbstractComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -27,6 +30,7 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import ch.imaginarystudio.keyboardapp.ui.theme.KeyboardColorThemes
+import kotlinx.coroutines.flow.map
 
 
 class KeyboardIMEService : LifecycleInputMethodService(),
@@ -101,11 +105,14 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
     @Composable
     override fun Content() {
 
+        val activeThemeIndex by LocalContext.current.keyboardPreferencesStore.data.map {
+            it[ACTIVE_THEME_KEY]?:0
+        }.collectAsState(initial = 0)
 
         val keyboardTheme = KeyboardTheme (
             shrinkKeyDp = 1.2.dp,
             keyPaint = Paint(),
-            colorTheme = KeyboardColorThemes[0],
+            colorTheme = KeyboardColorThemes[activeThemeIndex],
         )
 
         keyboardTheme.keyPaint.apply {
@@ -118,32 +125,32 @@ class ComposeKeyboardView(context: Context) : AbstractComposeView(context) {
         val concentricPositions1 = concentricGrid1(keyboardTheme.aspectRatio)
         val concentricPositions2 = concentricGrid2(keyboardTheme.aspectRatio)
 
+        // TODO: cleanup messy string literals as used keys
+        val aspect = keyboardTheme.aspectRatio
+        val keyboardOptions = mapOf(
+            "Regular Keyboard" to makeKeyboardData(regularPositions, aspect),
+            "Rings Keyboard" to makeKeyboardData(concentricPositions2, aspect),
+            "Rings Keyboard 2" to  makeKeyboardData(concentricPositions1, aspect),
+            "Custom Keyboard" to makeKeyboardData(emptyList(), aspect),
+        )
+        val activeKeyboardKey by LocalContext.current.keyboardPreferencesStore.data.map {
+            it[ACTIVE_KEYBOARD_KEY]?:keyboardOptions.keys.first()
+        }.collectAsState(initial = keyboardOptions.keys.first())
+
         val keyboardState = KeyboardState (
             modifierShift = remember { mutableStateOf(false) },
             modifierNumeric = remember { mutableStateOf(false) },
             mode = remember { mutableStateOf(Mode.KEYBOARD) }
         )
 
-
-        val aspect = keyboardTheme.aspectRatio
-
-        val keyboardOptions = mapOf(
-            "Regular Keyboard" to makeKeyboardData(regularPositions, aspect),
-            "Default Keyboard (rings)" to makeKeyboardData(concentricPositions2, aspect),
-            "Default Keyboard 2 (rings)" to  makeKeyboardData(concentricPositions1, aspect),
-            "Custom Keyboard 1" to makeKeyboardData(emptyList(), aspect),
-        )
-
-        val selectedKeyboard = remember { mutableStateOf("Regular Keyboard") }
-
-        if (selectedKeyboard.value in keyboardOptions) {
-            val keyboardData = keyboardOptions.getValue(selectedKeyboard.value)
+        if (activeKeyboardKey in keyboardOptions) {
+            val keyboardData = keyboardOptions.getValue(activeKeyboardKey)
 
             if (!keyboardData.finishedConstruction.value) {
                 KeyboardConstructView(keyboardData, keyboardState, keyboardTheme, 0.9f)
             } else {
                 if (keyboardState.mode.value == Mode.MENU) {
-                    MenuView(selectedKeyboard, keyboardOptions, keyboardData, keyboardState, keyboardTheme)
+                    MenuView(activeKeyboardKey, keyboardOptions, keyboardData, keyboardState, keyboardTheme)
                 } else if (keyboardState.mode.value == Mode.KEYBOARD) {
                     KeyboardView(keyboardData, keyboardState, keyboardTheme)
                 } else if (keyboardState.mode.value == Mode.MOVE_MODIFYING) {

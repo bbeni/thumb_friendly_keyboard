@@ -15,21 +15,27 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import kotlinx.coroutines.launch
 
 
 @Composable
-fun SelectKeyboardGroup(keyboardState: KeyboardState, selectedOption: MutableState<String>, options: Map<String, KeyboardData>) {
+fun SelectKeyboardGroup(keyboardState: KeyboardState, selectedOption: String, options: Map<String, KeyboardData>) {
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()    
 
     val onSelectionChange = { text: String ->
-        selectedOption.value = text
+        scope.launch {
+            preferencesUpdateActiveKeyboard(context, text)
+        }
     }
 
     Column(
@@ -59,11 +65,13 @@ fun SelectKeyboardGroup(keyboardState: KeyboardState, selectedOption: MutableSta
                                 shape = RoundedCornerShape(
                                     size = 12.dp
                                 )
-                            ).clickable {
+                            )
+                            .clickable {
                                 onSelectionChange(text)
                                 keyboardState.mode.value = Mode.MOVE_MODIFYING
-                            }.background(
-                                if (text == selectedOption.value) {
+                            }
+                            .background(
+                                if (text == selectedOption) {
                                     Color.DarkGray
                                 } else {
                                     Color.LightGray
@@ -107,7 +115,7 @@ fun SelectKeyboardGroup(keyboardState: KeyboardState, selectedOption: MutableSta
                             onSelectionChange(text)
                         }
                         .background(
-                            if (text == selectedOption.value) {
+                            if (text == selectedOption) {
                                 Color.Magenta
                             } else {
                                 Color.LightGray
@@ -121,7 +129,7 @@ fun SelectKeyboardGroup(keyboardState: KeyboardState, selectedOption: MutableSta
 }
 
 @Composable
-fun MenuView(selected: MutableState<String> , options: Map<String, KeyboardData>, keyboardData: KeyboardData, state: KeyboardState, theme: KeyboardTheme) {
+fun MenuView(selected: String, options: Map<String, KeyboardData>, keyboardData: KeyboardData, state: KeyboardState, theme: KeyboardTheme) {
     Column(
         modifier = Modifier
             .aspectRatio(theme.aspectRatio)
