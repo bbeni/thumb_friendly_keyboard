@@ -234,7 +234,6 @@ fun KeyboardView(keyboardData: KeyboardData, state: KeyboardState, theme: Keyboa
     val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
 
-
     Canvas(
         modifier = Modifier
             .aspectRatio(theme.aspectRatio)

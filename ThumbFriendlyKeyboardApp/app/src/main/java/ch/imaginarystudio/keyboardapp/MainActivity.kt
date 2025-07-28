@@ -63,23 +63,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import splitties.systemservices.inputMethodManager
 
-/*
-    Goals:
-        -[x] Multiple Pages of keyboard: Letters, Numbers, ...
-        -[ ] Save keyboards persistently
-        -[ ] Predefined Grid/Patterns for placing keys
-        -[x] Have a good default Keyboard
-        -[ ] Languages
-        -[x] UI to select keyboard when app opened
-
-    Bugs:
-        -[ ] Keyboard crash on landscape
-        -[x] App crash on select other IME
-        -[x] Handle return/newline better
-        -[x] Handle long press
-        -[ ] Crash in editing keyboard view
-        -[ ] Option Construct Keyboard does not remember state
- */
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

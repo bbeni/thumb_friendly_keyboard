@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 fun SelectKeyboardGroup(keyboardState: KeyboardState, selectedOption: String, options: Map<String, KeyboardData>) {
 
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()    
+    val scope = rememberCoroutineScope()
 
     val onSelectionChange = { text: String ->
         scope.launch {
