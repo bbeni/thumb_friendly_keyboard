@@ -2,6 +2,7 @@
 
 A keyboard for android that is adapted to the anatomy of your thumbs.
 
+![](documentation/preview.png "Preview")
 
 ## Features
 
